@@ -12,7 +12,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { images, fontSizes, colors } from '../constants';
 import { faCircle, faClock, faEllipsisV, faLocationArrow, faMoon, faPlus, faSun } from '@fortawesome/free-solid-svg-icons';
-import { SmallButton, BigTemperature, Temperature, WeatherInfoH, Button, WeatherHourlyV} from '../components';
+import { SmallButton, BigTemperature, Temperature, WeatherInfoH, Button, WeatherHourlyV, ExtraInfoItem} from '../components';
 import Fontsizes from '../constants/Fontsizes';
 
 const MainScreen = (props) => {
@@ -332,52 +332,14 @@ const MainScreen = (props) => {
                                 borderRadius: 10, 
                                 margin: 5
                             }}>
-                                <View style={{
-                                    flex: 1,
-                                    justifyContent: 'space-between',
-                                    flexDirection: 'row',
-                                    borderBottomWidth: 1,
-                                    borderBottomColor: colors.fadeTextColor,
-                                    margin: 10
-                                }}>
-                                    <Text style={{color: colors.fadeTextColor, textAlignVertical:'center'}}>Humidity</Text>
-                                    <Text style={textStyle}>87%</Text>
-                                </View>
-                                <View style={{
-                                    flex: 1,
-                                    justifyContent: 'space-between',
-                                    flexDirection: 'row',
-                                    borderBottomWidth: 1,
-                                    borderBottomColor: colors.fadeTextColor,
-                                    margin: 10
-                                }}>
-                                    <Text style={{color: colors.fadeTextColor, textAlignVertical:'center'}}>Real feel</Text>
-                                    <Text style={textStyle}>26</Text>
-                                </View>
-                                <View style={{
-                                    flex: 1,
-                                    justifyContent: 'space-between',
-                                    flexDirection: 'row',
-                                    borderBottomWidth: 1,
-                                    borderBottomColor: colors.fadeTextColor,
-                                    margin: 10
-                                }}>
-                                    <Text style={{color: colors.fadeTextColor, textAlignVertical:'center'}}>UV</Text>
-                                    <Text style={textStyle}>1</Text>
-                                </View>
-                                <View style={{
-                                    flex: 1,
-                                    justifyContent: 'space-between',
-                                    flexDirection: 'row',
-                                    borderBottomWidth: 1,
-                                    borderBottomColor: colors.fadeTextColor,
-                                    margin: 10
-                                }}>
-                                    <Text style={{color: colors.fadeTextColor, textAlignVertical:'center'}}>AQI</Text>
-                                    <Text style={textStyle}>56</Text>
-                                </View>
-                                
-                                
+                                <FlatList
+                                data={extraInfoData}
+                                renderItem={({item}) => {
+                                    return <ExtraInfoItem data={item} height = {28} nameStyle={nameTextStyle} valueStyle={valueTextStyle}></ExtraInfoItem>
+                                }}
+                                keyExtractor={item => item.name}>
+
+                                </FlatList>
                             </View>
                         </View>
                     </ScrollView>
@@ -389,6 +351,26 @@ const MainScreen = (props) => {
 }
 
 
+const extraInfoData = [
+    {
+        name: 'Humidity',
+        value: '87%'
+    },
+    {
+        name: 'AQI',
+        value: 56
+    },
+    {
+        name: 'UV',
+        value: 1
+    },
+    {
+        name: 'Real feel',
+        value: 24
+    }
+]
+
+
 const normalTextStyle = StyleSheet.create({
     fontSize: fontSizes.h5,
     color: colors.fadeBlackTextColor,
@@ -396,9 +378,20 @@ const normalTextStyle = StyleSheet.create({
     textAlignVertical: 'center',
     margin: 10
 })
-
 const textStyle = StyleSheet.create({
     color: colors.textColor, fontSize: fontSizes.h5, textAlignVertical: 'center'
 })
+const nameTextStyle = StyleSheet.create({
+    color: colors.textColor, fontSize: fontSizes.h5, textAlignVertical: 'center'
+})
+const valueTextStyle = StyleSheet.create({
+    color: colors.fadeTextColor, fontSize: fontSizes.h6, textAlignVertical: 'center'
+})
 
+
+const commonStyle = StyleSheet.create({
+    flex: 1,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+})
 export default MainScreen;

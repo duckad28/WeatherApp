@@ -5,11 +5,13 @@ import {
     ScrollView,
     Modal,
     TouchableOpacity,
-    StyleSheet
+    StyleSheet,
+    FlatList
 } from 'react-native';
 import { colors, fontSizes } from '../constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCross, faMoon, faMultiply, faSun, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { ExtraInfoItem } from '../components';
 
 const DayInfoScreen = (props) => {
     let {isVisible, setVisible} = props;
@@ -64,130 +66,12 @@ const DayInfoScreen = (props) => {
                         <Text>Clear, hot and humid</Text>
                     </View>
                     <ScrollView showsVerticalScrollIndicator={false}>
-                        <View style={{
-                            height: 40,
-                            borderBottomWidth: 1,
-                            borderColor: colors.fadeTextColor,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            margin: 10,
-                            justifyContent: 'space-between'
-                        }}>
-                            <Text style={normalTextStyle}>RealFeel High</Text>
-                            <Text>39</Text>
-
-                        </View>
-                        <View style={{
-                            height: 40,
-                            borderBottomWidth: 1,
-                            borderColor: colors.fadeTextColor,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            margin: 10,
-                            justifyContent: 'space-between'
-                        }}>
-                            <Text style={normalTextStyle}>RealFeel Low</Text>
-                            <Text>24</Text>
-
-                        </View>
-
-                        <View style={{
-                            height: 40,
-                            borderBottomWidth: 1,
-                            borderColor: colors.fadeTextColor,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            margin: 10,
-                            justifyContent: 'space-between'
-                        }}>
-                            <Text style={normalTextStyle}>RealFeel Shade High</Text>
-                            <Text>37</Text>
-
-                        </View>
-
-                        <View style={{
-                            height: 40,
-                            borderBottomWidth: 1,
-                            borderColor: colors.fadeTextColor,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            margin: 10,
-                            justifyContent: 'space-between'
-                        }}>
-                            <Text style={normalTextStyle}>AQI</Text>
-                            <Text>39</Text>
-
-                        </View>
-
-                        <View style={{
-                            height: 40,
-                            borderBottomWidth: 1,
-                            borderColor: colors.fadeTextColor,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            margin: 10,
-                            justifyContent: 'space-between'
-                        }}>
-                            <Text style={normalTextStyle}>Max UV Index</Text>
-                            <Text>4</Text>
-
-                        </View>
-
-                        <View style={{
-                            height: 40,
-                            borderBottomWidth: 1,
-                            borderColor: colors.fadeTextColor,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            margin: 10,
-                            justifyContent: 'space-between'
-                        }}>
-                            <Text style={normalTextStyle}>Average Wind</Text>
-                            <Text>SSE 17km/h</Text>
-
-                        </View>
-
-                        <View style={{
-                            height: 40,
-                            borderBottomWidth: 1,
-                            borderColor: colors.fadeTextColor,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            margin: 10,
-                            justifyContent: 'space-between'
-                        }}>
-                            <Text style={normalTextStyle}>Max Wind Gusts</Text>
-                            <Text>26km/h</Text>
-
-                        </View>
-
-                        <View style={{
-                            height: 40,
-                            borderBottomWidth: 1,
-                            borderColor: colors.fadeTextColor,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            margin: 10,
-                            justifyContent: 'space-between'
-                        }}>
-                            <Text style={normalTextStyle}>Rain Probability</Text>
-                            <Text>9%</Text>
-
-                        </View>
-
-                        <View style={{
-                            height: 40,
-                            borderBottomWidth: 1,
-                            borderColor: colors.fadeTextColor,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            margin: 10,
-                            justifyContent: 'space-between'
-                        }}>
-                            <Text style={normalTextStyle}>Average Cloudy Cover</Text>
-                            <Text>50%</Text>
-
-                        </View>
+                        <FlatList 
+                        data={dayInfoData}
+                        renderItem={({item}) => {
+                            return <ExtraInfoItem data = {item} height = {40} nameStyle={nameTextStyle} valueStyle = {valueTextStyle}></ExtraInfoItem>
+                        }}
+                        keyExtractor={item => item.name}></FlatList>
 
                         <View style={{
                             height: 120,
@@ -244,6 +128,45 @@ const DayInfoScreen = (props) => {
     )
 }
 
+const dayInfoData = [
+    {
+        name: 'RealFeel high',
+        value: 39
+    },
+    {
+        name: 'RealFeel low',
+        value: 25
+    },
+    {
+        name: 'RealFeel Shade high',
+        value: 35
+    },
+    {
+        name: 'AQI',
+        value: 50
+    },
+    {
+        name: 'Max UV Index',
+        value: 1
+    },
+    {
+        name: 'average wind',
+        value: '17km/h'
+    },
+    {
+        name: 'rain probability',
+        value: '37%'
+    },
+    {
+        name: 'max wind gust',
+        value: '26km/h'
+    },
+    {
+        name: 'Average cloud cover',
+        value: '5%'
+    }
+]
+
 const Temperature = (props) => {
     let {highest, lowest, fontSize} = props;
     return (
@@ -281,6 +204,20 @@ const headerStyle = StyleSheet.create({
 
 })
 const normalTextStyle = StyleSheet.create({
+    fontSize: fontSizes.h6,
+    color: colors.fadeBlackTextColor,
+    fontWeight: '400',
+    textAlignVertical: 'center',
+
+})
+const nameTextStyle = StyleSheet.create({
+    fontSize: fontSizes.h5,
+    color: colors.blackTextColor,
+    fontWeight: '400',
+    textAlignVertical: 'center',
+
+})
+const valueTextStyle = StyleSheet.create({
     fontSize: fontSizes.h6,
     color: colors.fadeBlackTextColor,
     fontWeight: '400',

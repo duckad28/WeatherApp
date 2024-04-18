@@ -5,5 +5,6 @@ export default {
     fadeTextColor: '#e4e4e4',
     locationColor: '#2596be',
     fadeBlackTextColor: '#545454',
-    switchColor: '#eab676'
+    switchColor: '#eab676',
+    blackTextColor: 'black'
 }

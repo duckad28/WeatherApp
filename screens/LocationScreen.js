@@ -1,15 +1,10 @@
 import React, {useState, useEffect} from 'react';
 import {
     View,
-    ImageBackground,
     TouchableOpacity,
     FlatList,
     Text,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    KeyboardAvoidingView,
-    Keyboard
+    TextInput, 
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft, faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -19,7 +14,6 @@ import { colors } from '../constants';
 const LocationScreen = (props) => {
     const { navigation } = props;
     const { navigate } = navigation;
-    const [isKeyboardShown, setIsKeyBoardShown] = useState(false);
     const [searchText, setSearchText] = useState('');
     // useEffect(() => {
     //     Keyboard.addListener(
@@ -48,6 +42,13 @@ const LocationScreen = (props) => {
         current: 30,
         isSelected: false
     },
+    {
+            location: 'Hai Phong',
+            highest: 34,
+            lowest: 24,
+            current: 30,
+            isSelected: false
+        },
     // {
     //     location: 'Hoang Sa',
     //     highest: 34,
@@ -84,8 +85,7 @@ const LocationScreen = (props) => {
         backgroundColor: 'white',
         flex: 1
     }}>
-        <KeyboardAvoidingView
-        behavior={Platform.OS == 'android' ? 'padding' : 'height'}
+        <View
         style={{ flex: 1, backgroundColor: 'white', marginHorizontal: 10, marginVertical: 10 }}>
         <TouchableOpacity onPress={() => navigate('MainScreen')} style={{ height: 40 }}>
             <FontAwesomeIcon icon={faArrowLeft} size={26}></FontAwesomeIcon>
@@ -109,7 +109,7 @@ const LocationScreen = (props) => {
         </View>
 
 
-        {!isKeyboardShown &&
+
             <View style={{ flex: 12, margin: 20 }}>
                 <FlatList data={locationData.filter((eachLocation) => {
                     return eachLocation.location.toLowerCase().includes(searchText.toLowerCase())
@@ -132,8 +132,8 @@ const LocationScreen = (props) => {
                     keyExtractor={item => item.location}>
 
                 </FlatList>
-            </View>}
-    </KeyboardAvoidingView>
+            </View>
+    </View>
     </View>
     
     )

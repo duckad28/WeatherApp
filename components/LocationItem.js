@@ -12,7 +12,7 @@ const LocationItem = (props) => {
     let { location, highest, lowest, current, isSelected } = props.eachLocation
     let onPress = props.onPress
     return (
-    <TouchableOpacity onPress={onPress} style={{ marginVertical: 20 }}>
+    <TouchableOpacity onPress={onPress} style={{ marginVertical: 10 }}>
             <ImageBackground source={images.image1} style={{
                 height: 100,
                 flexDirection: 'row',

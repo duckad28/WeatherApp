@@ -7,6 +7,7 @@ import WeatherHourlyV from "./WeatherHourlyV";
 import LocationItem from "./LocationItem";
 import WeatherInfoV from "./WeatherInfoV";
 import DataSelections from "./DataSelector";
+import ExtraInfoItem from "./ExtraInfoItem";
 
 export {
     SmallButton,
@@ -17,5 +18,6 @@ export {
     WeatherHourlyV,
     LocationItem,
     WeatherInfoV,
-    DataSelections
+    DataSelections,
+    ExtraInfoItem
 }
