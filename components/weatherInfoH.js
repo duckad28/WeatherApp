@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, View, StyleSheet} from 'react-native';
+import {Text, View, StyleSheet, Image} from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {colors, fontSizes} from '../constants';
 import {Temperature} from '../components';
@@ -7,16 +7,15 @@ import {faCloud, faCloudRain, faSun } from '@fortawesome/free-solid-svg-icons';
 
 
 const WeatherInfoH = (props) => {
-    let {highestTemp, lowestTemp, weather, dayOfWeeks} = props.weatherInfo;
-    let  icon = (weather == 'Cloudy') ? faCloud : (weather == 'Sunny' ? faSun : (weather == 'Rainy') ? faCloudRain : faSun);
+    let {highestTemp, lowestTemp, weather, dayOfWeeks, icon} = props.weatherInfo;
     return (
         <View style={containerStyle}>
             <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
-                <FontAwesomeIcon icon={icon} color={colors.textColor}></FontAwesomeIcon>
+                <Image source={{uri: 'https:' + icon}} style={{tintColor: '#ffffff', width: 32, height: 32}}></Image>
                 <View style={{ width: 10 }}></View>
                 <Text style={textStyle}>{dayOfWeeks}</Text>
                 <View style={{ width: 10 }}></View>
-                <Text style={textStyle}>{weather}</Text>
+                <Text style={sTextStyle}>{weather}</Text>
             </View>
             <Temperature highest={highestTemp} lowest={lowestTemp} fontSize={fontSizes.h5}></Temperature>
         </View>
@@ -32,6 +31,9 @@ const containerStyle = StyleSheet.create({
 })
 const textStyle = StyleSheet.create({
     color: colors.textColor, fontSize: fontSizes.h5, textAlignVertical: 'center'
+})
+const sTextStyle = StyleSheet.create({
+    color: colors.textColor, fontSize: fontSizes.h6, textAlignVertical: 'center'
 })
 
 export default WeatherInfoH;

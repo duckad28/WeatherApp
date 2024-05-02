@@ -29,7 +29,7 @@ const LocationScreen = (props) => {
     // })
     const [locationData, setLocationData] = useState([
     {
-        location: 'Hoang Mai',
+        location: 'Ha Noi',
         highest: 34,
         lowest: 24,
         current: 30,
@@ -105,6 +105,8 @@ const LocationScreen = (props) => {
             <FontAwesomeIcon icon={faSearch} size={18} style={{ paddingHorizontal: 20 }}></FontAwesomeIcon>
             <TextInput onChangeText={(text) => {
                 setSearchText(text)
+            }} onSubmitEditing={() => {
+                navigate('MainScreen', {cityName: searchText})
             }} placeholder='Enter location' style={{}}></TextInput>
         </View>
 
@@ -117,13 +119,16 @@ const LocationScreen = (props) => {
                     showsVerticalScrollIndicator={false}
                     renderItem={({ item }) => {
                         return <LocationItem eachLocation={item} onPress={() => {
+                            navigate('MainScreen', {cityName: item.location})
                             let newLocationData = locationData.map(eachLocationItem => {
                                 return {
                                     ...eachLocationItem,
                                     isSelected: item.location === eachLocationItem.location
                                 }
                             })
+                            
                             setLocationData(newLocationData)
+                            
                         }}>
 
                         </LocationItem>
