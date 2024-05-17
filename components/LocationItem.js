@@ -35,7 +35,7 @@ const LocationItem = (props) => {
                     
                 </View>
                 <View>
-                    <Text style={{ fontSize: 30 }}>{current}</Text>
+                    <Text style={{ fontSize: 30 }}>{current}°</Text>
                 </View>
             </ImageBackground>
     </TouchableOpacity>)

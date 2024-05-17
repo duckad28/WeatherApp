@@ -16,15 +16,8 @@ const BigTemperature = (props) => {
             }}>{currentTemp}</Text>
             <View>
                 <Text style={{
-                    position: 'absolute', top: 20, fontSize: 20, color: colors.textColor
-                }}>o</Text>
-            </View>
-
-
-            <View>
-                <Text style={{
                     position: 'absolute', top: 20, left: 12, fontSize: 30, color: colors.textColor
-                }}>C</Text>
+                }}>°C</Text>
             </View>
         </View>
     )

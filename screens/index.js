@@ -6,6 +6,8 @@ import LocationPermissionScreen from "./LocationPermissionScreen";
 import WeatherReportScreen from "./WeatherReportScreen";
 import DayInfoScreen from "./DayInfoScreen";
 import AqiScreen from "./AqiScreen";
+import HomeView from "./HomeScreen";
+import WeatherForecast from "./test";
 
 export {
     MainScreen,
@@ -15,5 +17,6 @@ export {
     LocationPermissionScreen,
     WeatherReportScreen,
     DayInfoScreen,
-    AqiScreen
+    AqiScreen,
+    HomeView, WeatherForecast
 }

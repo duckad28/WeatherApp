@@ -6,5 +6,6 @@ export default {
     locationColor: '#2596be',
     fadeBlackTextColor: '#545454',
     switchColor: '#eab676',
-    blackTextColor: 'black'
+    blackTextColor: 'black',
+    borderColor: '#9e9e9e',
 }

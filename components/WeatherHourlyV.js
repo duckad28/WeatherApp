@@ -5,19 +5,24 @@ import {colors, fontSizes} from '../constants';
 
 const WeatherHourlyV = (props) => {
     let {temp, hour} = props;
+    let {max} = props;
+    let dMax = Math.round(max) - temp;
     hour = toHour(hour);
     let {icon} = props;
     // icon = icon.slice(-7,-4);
     return (
-        <View style={{ flexDirection: 'column', flex: 1,width: 70, marginHorizontal: 2, justifyContent: 'space-around', alignItems: 'center' }}>
-            <View style={{ flexDirection: 'row' }}>
-                <Text style={{ color: colors.textColor, fontSize: 24 }}>{temp}</Text>
-                <View style={{
-                }}>
-                    <Text style={{ position: 'absolute', top: 0, fontSize: 12, color: colors.textColor }}>o</Text>
-                </View>
+        <View style={{
+            flexDirection: 'column',
+            height: 200,
+            width: 70,
+            marginHorizontal: 2,
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            }}>
+            <View style={{ flexDirection: 'column', height: 100, justifyContent: 'flex-start', }}>
+                <Text style={{ color: colors.textColor, fontSize: 20, marginTop: dMax*5}}>{temp}°</Text>
             </View>
-            <Image source={{uri: 'https:' + icon}} style={{tintColor: '#ffffff', width: 32, height: 32}}></Image>
+            <Image source={{uri: 'https:' + icon}} style={{width: 32, height: 32}}></Image>
             <Text style={textStyle}>{hour}</Text>
         </View>
     )

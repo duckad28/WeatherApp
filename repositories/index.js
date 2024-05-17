@@ -1,5 +1,7 @@
-import CurrentWeather from './currentWeather';
+import { getCurrentWeather, getAqiData, getDailyForecast } from "./fetchData";
 
 export {
-    CurrentWeather
+    getAqiData,
+    getCurrentWeather,
+    getDailyForecast
 }

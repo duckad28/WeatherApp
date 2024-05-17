@@ -13,7 +13,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCross, faMoon, faMultiply, faSun, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { ExtraInfoItem } from '../components';
 
+const dayOfWeeks = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const getDayOfWeek = (day) => {
+    let t = new Date(day);
+    return dayOfWeeks[t.getDay()];
+}
+
 const DayInfoScreen = (props) => {
+    let weatherData = props.data;
+    let {dt_txt, main , weather, rain} = weatherData
     let {isVisible, setVisible} = props;
     let data = {
         date: '15/04/2024',
@@ -21,6 +29,47 @@ const DayInfoScreen = (props) => {
         highestTemp: 30,
         lowestTemp: 24,
     }
+    const dayInfoData = [
+        {
+            name: 'RealFeel high',
+            value: Math.round(main.temp_max)
+        },
+        {
+            name: 'RealFeel low',
+            value: Math.round(main.temp_min)
+        },
+        {
+            name: 'RealFeel',
+            value: Math.round(main.temp)
+        },
+        {
+            name: 'Humidity',
+            value: main.humidity
+        },
+        {
+            name: 'Cloud',
+            value: weatherData.clouds.all + "%"
+        },
+        {
+            name: 'Wind speed',
+            value: weatherData.wind.speed
+        },
+        {
+            name: 'Wind degree',
+            value: weatherData.wind.deg
+        },
+        {
+            name: 'Wind gust',
+            value: weatherData.wind.gust
+        },
+        {
+            name: 'Visibility',
+            value: weatherData.visibility
+        }
+    ]
+    
+    let highestTemp = Math.round(main.temp_max);
+    let lowestTemp = Math.round(main.temp_min);
     return (
         <Modal visible={isVisible} transparent={true} animationType='slide'>
             <View style = {{
@@ -54,16 +103,16 @@ const DayInfoScreen = (props) => {
                         justifyContent: 'center',
                         alignItems: 'center'
                     }}>
-                        <Text style={headerStyle}>{data.dayOfWeeks}</Text>
-                        <Text style={normalTextStyle}>{data.date}</Text>
+                        <Text style={headerStyle}>{getDayOfWeek(dt_txt)}</Text>
+                        <Text style={normalTextStyle}>{dt_txt}</Text>
                     </View>
                     <View style={{
                         justifyContent: 'center',
                         alignItems: 'center',
                         marginTop: 20
                     }}>
-                        <Temperature highest={data.highestTemp} lowest={data.lowestTemp} fontSize={fontSizes.h1}></Temperature>
-                        <Text>Clear, hot and humid</Text>
+                        <Temperature highest={Math.round(main.temp_max)} lowest={Math.round(main.temp_min)} fontSize={fontSizes.h1}></Temperature>
+                        <Text>{weatherData.weather[0].description}</Text>
                     </View>
                     <ScrollView showsVerticalScrollIndicator={false}>
                         <FlatList 
@@ -128,44 +177,7 @@ const DayInfoScreen = (props) => {
     )
 }
 
-const dayInfoData = [
-    {
-        name: 'RealFeel high',
-        value: 39
-    },
-    {
-        name: 'RealFeel low',
-        value: 25
-    },
-    {
-        name: 'RealFeel Shade high',
-        value: 35
-    },
-    {
-        name: 'AQI',
-        value: 50
-    },
-    {
-        name: 'Max UV Index',
-        value: 1
-    },
-    {
-        name: 'average wind',
-        value: '17km/h'
-    },
-    {
-        name: 'rain probability',
-        value: '37%'
-    },
-    {
-        name: 'max wind gust',
-        value: '26km/h'
-    },
-    {
-        name: 'Average cloud cover',
-        value: '5%'
-    }
-]
+
 
 const Temperature = (props) => {
     let {highest, lowest, fontSize} = props;
@@ -174,7 +186,8 @@ const Temperature = (props) => {
             flexDirection: 'row',
         }}>
 
-            <Text style={{color: 'black', fontSize: fontSize}}>{highest}</Text>
+            <Text style={{color: 'black', fontSize: fontSize, textAlignVertical: 'bottom'}}>{highest}</Text>
+
             <View style={{
             }}>
                 <Text style={{ position: 'absolute', top: 0, fontSize: fontSize/2, color: 'black' }}>o</Text>
@@ -186,11 +199,11 @@ const Temperature = (props) => {
                 color: 'black', fontSize: fontSize
             }}> </Text>
 
-            <Text style={{color: 'black', fontSize: fontSize}}>{lowest}</Text>
+            <Text style={{color: 'black', textAlignVertical: 'bottom', fontSize: fontSize*0.8}}>{lowest}</Text>
             <View style={{
                 width: 10
             }}>
-                <Text style={{ position: 'absolute', top: 0, fontSize: fontSize/2, color: 'black' }}>o</Text>
+                <Text style={{ position: 'absolute', top: fontSize*0.3, fontSize: fontSize/3, color: 'black' }}>o</Text>
             </View>
         </View>
     )

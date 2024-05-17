@@ -8,53 +8,79 @@ import {
     ScrollView,
     StyleSheet,
     Modal,
-    Alert,
-    ActivityIndicator
+    Image,
+    ActivityIndicator,
+    RefreshControl
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { images, fontSizes, colors } from '../constants';
 import { faCircle, faClock, faEllipsisV, faLocationArrow, faMoon, faPlus, faSun } from '@fortawesome/free-solid-svg-icons';
 import { SmallButton, BigTemperature, Temperature, WeatherInfoH, Button, WeatherHourlyV, ExtraInfoItem } from '../components';
+import { getDayOfWeek } from '../utilities';
 import Fontsizes from '../constants/Fontsizes';
 import axios from 'axios';
+import { getAqiData, getCurrentWeather, getDailyForecast } from '../repositories';
+import LottieView from 'lottie-react-native';
 
-const dayOfWeeks = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const getDayOfWeek = (day) => {
-    let t = new Date(day);
-    return dayOfWeeks[t.getDay()];
+const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+const HomeView = (props) => {
+    let [check, setCheck] = useState(false);
+    return (
+        <TouchableOpacity style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center'
+        }}>
+            <LottieView
+                source={require("../assets/animations/animation.json")}
+                style={{width: "100%", height: "100%"}}
+                autoPlay
+                loop
+            />
+        </TouchableOpacity>
+    )
 }
-
 const MainScreen = (props) => {
     const { navigation } = props;
-    const {route} = props;
+    const { route } = props;
     const { navigate } = navigation;
     let [isModalVisible, setModalVisible] = useState(false);
     let [isSetting, setSetting] = useState(false);
     let [isReportSelected, setReportSelected] = useState(false);
     let [isSettingSelected, setSettingSelected] = useState(false);
     let [cityName, setCityName] = useState(route.params.cityName);
-   
+
     const apiKey = '9a9dcb14233e4d9aad5142530242004';
     const unit = 'metric';
     let [currentWeather, setCurrentWeather] = useState({});
     let [forecastWeather, setForcastWeather] = useState([]);
+    let [dailyForecast, setDailyForcast] = useState([])
     let [isFetched, setIsFetched] = useState(false);
     let [weatherData, setWeatherData] = useState([]);
     let [extraInfoData, setExtraInfoData] = useState([]);
     let [weatherHoursData, setWeatherHoursData] = useState([]);
+    let [aqiData, setAqiData] = useState({});
+    let [currentIcon, setCurrentIcon] = useState("");
+    let [refreshing, setRefreshing] = useState(false);
+    let [maxTemp, setMaxTemp] = useState(0);
+    const handleRefresh = () => {
+        setRefreshing(true);
+        getCurrentWeather(route.params.cityName);
+        setRefreshing(false);
+    }
     const getCurrentWeather = async (cityName) => {
-        
-            // const response = await axios.get(forecastWeatherUrlApi);
-            // const data = await response.data;
-            
-    
-    
-            await fetch(`http://api.weatherapi.com/v1/forecast.json?key=9a9dcb14233e4d9aad5142530242004&q=${cityName}&days=3&aqi=no&alerts=no`)
-                .then((response) => response.json())
-                .then((data) => {
-                
+
+        // const response = await axios.get(forecastWeatherUrlApi);
+        // const data = await response.data;
+        setCityName(cityName);
+
+
+        await fetch(`http://api.weatherapi.com/v1/forecast.json?key=9a9dcb14233e4d9aad5142530242004&q=${cityName}&days=3&aqi=yes&alerts=no`)
+            .then((response) => response.json())
+            .then((data) => {
+
+                setAqiData(data.current.air_quality);
                 setForcastWeather(data.forecast.forecastday);
-                
                 setWeatherData([
                     {
                         date: data.forecast.forecastday[0].date,
@@ -81,57 +107,72 @@ const MainScreen = (props) => {
                         icon: data.forecast.forecastday[2].day.condition.icon,
                     },
                 ])
-                
-                
-                })
-                .catch((error) => {})
-                try {
-                    const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?appid=a0a98d5889ad778265da6a7a517a082a&q=${cityName}&units=metric`);
-                    const data = await response.data;
-                    setCurrentWeather(data);
-                    setExtraInfoData([
-                        {
-                            name: 'Humidity',
-                            value: data.main.humidity
-                        },
-                        {
-                            name: 'Min Temp',
-                            value: data.main.temp_min
-                        },
-                        {
-                            name: 'Max Temp',
-                            value: data.main.temp_max
-                        },
-                        {
-                            name: 'Real feel',
-                            value: Math.round(data.main.feels_like)
-                        }
-                    ])
-                }
-                catch (e) {
+                let t = forecastWeather[0].hour;
+                setMaxTemp(Math.max.apply(Math, t.map(function (weather) {
+                    return weather.temp_c;
+                })))
 
+            })
+            .catch((error) => { })
+        try {
+            const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?appid=a0a98d5889ad778265da6a7a517a082a&q=${cityName}&units=metric`);
+            const data = await response.data;
+            setCurrentWeather(data);
+            setCurrentIcon(data.weather[0].icon);
+            setExtraInfoData([
+                {
+                    name: 'Humidity',
+                    value: data.main.humidity
+                },
+                {
+                    name: 'Min Temp',
+                    value: data.main.temp_min
+                },
+                {
+                    name: 'Max Temp',
+                    value: data.main.temp_max
+                },
+                {
+                    name: 'Real feel',
+                    value: Math.round(data.main.feels_like)
                 }
+            ])
+        }
+        catch (e) {
 
-                
-                setIsFetched(true);
+        }
+
+        try {
+            const response = await axios.get(`https://api.openweathermap.org/data/2.5/forecast?appid=a0a98d5889ad778265da6a7a517a082a&q=${cityName}&units=metric`);
+            const data = await response.data;
+            setDailyForcast(data.list);
+        }
+        catch (e) {
+
+        }
         
+        await delay(2000);
+        setIsFetched(true);
+
     }
 
     useEffect(() => {
         setCityName(route.params.cityName);
         getCurrentWeather(cityName);
-        
     }, [props.route.params.cityName])
 
-    
-    if (isFetched == false) {
-        return <ActivityIndicator>
 
-        </ActivityIndicator>
+    if (isFetched == false) {
+        return <HomeView></HomeView>
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: 'white' }}>
+        
+        <View style={{
+            flex: 1, backgroundColor: 'white'
+            }}
+            
+            >
 
 
             {/**------------------------App---------------------------- */}
@@ -201,7 +242,9 @@ const MainScreen = (props) => {
                         flex: 1, alignItems: 'center'
                     }}>
                         <SmallButton content={'Allow Weather to access your location'}
-                            onPress={() => getCurrentWeather(cityName)}>
+                            onPress={() => {
+                               
+                            }}>
                         </SmallButton>
 
                         <View style={{
@@ -228,7 +271,11 @@ const MainScreen = (props) => {
                     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}
                         style={{
                             flex: 10
-                        }}>
+                        }}
+                        refreshControl = {
+                            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                        }
+                          >
                         {/*------------Current Temperature.------------*/}
                         <View style={{
                             height: 400
@@ -251,14 +298,41 @@ const MainScreen = (props) => {
                                     <Text style={{ color: colors.textColor, fontSize: fontSizes.h4 }}>{currentWeather.weather[0].main}</Text>
                                     <View style={{ width: 20 }}></View>
                                     <Temperature highest={Math.round(forecastWeather[0].day.maxtemp_c)} lowest={Math.round(forecastWeather[0].day.mintemp_c)} fontSize={fontSizes.h4}></Temperature>
+
                                 </View>
 
                                 <View style={{
                                     flex: 6,
-                                    flexDirection: 'row',
-                                    justifyContent: 'center'
+                                    justifyContent: 'center',
                                 }}>
-
+                                    <View style={{
+                                        flex: 1,
+                                        marginHorizontal: 30,
+                                        justifyContent: 'space-evenly',
+                                        alignItems: 'center',
+                                        flexDirection: 'row'
+                                    }}>
+                                        <SmallButton content={'AQI'} onPress={() => navigate('AqiScreen', {data: aqiData})}></SmallButton>
+                                        <View style={{
+                                            paddingHorizontal: 10,
+                                            paddingVertical: 2,
+                                            borderRadius: 15,
+                                            backgroundColor: colors.buttonColor,
+                                            flexDirection: 'row',
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }}>
+                                            <Image source={{uri: 'http://openweathermap.org/img/w/' + currentIcon +'.png'}} style={{tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center'}}></Image>
+                                            <View style={{width: 6}}></View>
+                                            <Text style={{
+                                                fontSize: fontSizes.h7,
+                                                color: colors.textColor,
+                                                textAlign: 'center'
+                                            }}>{currentWeather.weather[0].description}</Text>
+                                            
+                                        </View>
+                                    </View>
+                                    <View style={{flex: 1}}></View>
                                 </View>
                             </View>
                         </View>
@@ -288,7 +362,7 @@ const MainScreen = (props) => {
                                     </FlatList>
                                 </View>
                                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                                    <Button onPress={() => navigate('UpcomingWeatherScreen')} content={'Daily Forecast'} ></Button>
+                                    <Button onPress={() => navigate('UpcomingWeatherScreen', {data: dailyForecast})} content={'Daily Forecast'} ></Button>
                                 </View>
                             </View>
                         </View>
@@ -308,7 +382,7 @@ const MainScreen = (props) => {
                                 <View style={{ width: 10 }}></View>
                                 <Text style={textStyle}>24 hours forecast</Text>
                             </View>
-
+                            
                             {/*------------Info------------*/}
                             <View style={{ flex: 1, flexDirection: 'row' }}>
                                 <FlatList
@@ -316,7 +390,7 @@ const MainScreen = (props) => {
                                     horizontal={true}
                                     data={forecastWeather[0].hour}
                                     renderItem={({ item }) => {
-                                        return <WeatherHourlyV  temp = {Math.round(item.temp_c)} hour = {item.time}  icon={item.condition.icon}></WeatherHourlyV>
+                                        return <WeatherHourlyV max = {maxTemp} temp={Math.round(item.temp_c)} hour={item.time} icon={item.condition.icon}></WeatherHourlyV>
                                     }}
                                     keyExtractor={item => item.time}></FlatList>
 
