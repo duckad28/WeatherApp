@@ -21,6 +21,7 @@ import Fontsizes from '../constants/Fontsizes';
 import axios from 'axios';
 import { getAqiData, getCurrentWeather, getDailyForecast } from '../repositories';
 import LottieView from 'lottie-react-native';
+import GeoLocation from "@react-native-community/geolocation";
 
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 const HomeView = (props) => {
@@ -49,6 +50,7 @@ const MainScreen = (props) => {
     let [isReportSelected, setReportSelected] = useState(false);
     let [isSettingSelected, setSettingSelected] = useState(false);
     let [cityName, setCityName] = useState(route.params.cityName);
+    let [currentLocation, setCurrentLocation] = useState(route.params.cityName);
 
     const apiKey = '9a9dcb14233e4d9aad5142530242004';
     const unit = 'metric';
@@ -63,6 +65,22 @@ const MainScreen = (props) => {
     let [currentIcon, setCurrentIcon] = useState("");
     let [refreshing, setRefreshing] = useState(false);
     let [maxTemp, setMaxTemp] = useState(0);
+
+    //Lay dia chi chi tiet tu toa do
+    const reverseGeoCode = async ({lat, long}: {lat: number, long: number}) => {
+        const api = `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${lat},${long}&lang=vi-VI&apiKey=TRDm5IbmNOYHbJTMzgZe7KpozT9EZOMYNt2VFTu3Fos`;
+
+        try {
+            const res = await axios(api);
+            if(res && res.status === 200 && res.data){
+                const items = res.data.items;
+                setCurrentLocation(items[0]);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    console.log(currentLocation);
     const handleRefresh = () => {
         setRefreshing(true);
         getCurrentWeather(route.params.cityName);
@@ -72,7 +90,7 @@ const MainScreen = (props) => {
 
         // const response = await axios.get(forecastWeatherUrlApi);
         // const data = await response.data;
-        setCityName(cityName);
+        setCityName(`${currentLocation.address.city}, ${currentLocation.address.county}`);
 
 
         await fetch(`http://api.weatherapi.com/v1/forecast.json?key=9a9dcb14233e4d9aad5142530242004&q=${cityName}&days=3&aqi=yes&alerts=no`)
@@ -242,9 +260,22 @@ const MainScreen = (props) => {
                         flex: 1, alignItems: 'center'
                     }}>
                         <SmallButton content={'Allow Weather to access your location'}
-                            onPress={() => {
-                               
+                            onPress={() => navigate('LocationPermissionScreen')}>
                             }}>
+                        </SmallButton>
+
+                        <SmallButton content={'Your location'}
+                            onPress={() => {
+                                GeoLocation.getCurrentPosition(position => {
+                                    if(position.coords) {
+                                        reverseGeoCode({
+                                            lat: position.coords.latitude,
+                                            long: position.coords.longitude,
+                                        });
+                                    }
+                                })
+                            }}>
+                            }
                         </SmallButton>
 
                         <View style={{
@@ -252,7 +283,7 @@ const MainScreen = (props) => {
                             flexDirection: 'row',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            marginTop: 4
+                            marginTop: 10
                         }}>
                             <FontAwesomeIcon icon={faLocationArrow} size={fontSizes.iconSizeM} color={colors.textColor}></FontAwesomeIcon>
                             <View style={{ width: 10 }}></View>

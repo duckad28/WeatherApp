@@ -5,16 +5,31 @@ import {
     Switch,
     Text,
     StyleSheet,
+    PermissionsAndroid
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { colors, fontSizes } from '../constants';
+import GeoLocation from "@react-native-community/geolocation";
 
 const LocationPermissionScreen = (props) => {
     const [isEnabled, setIsEnabled] = useState(false);
-    const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+    const toggleSwitch = () => {setIsEnabled(previousState => !previousState)};
     const { navigation } = props;
     const { navigate } = navigation;
+    const requestLocationPermission = () => {
+
+    //location
+        GeoLocation.getCurrentPosition(position => {
+            console.log(position);
+        })
+
+        const granted = PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+        //console.log(position);
+        setIsEnabled(true)
+        return granted;
+    };
     return (
         <View style={{
             backgroundColor: 'white',
@@ -28,7 +43,7 @@ const LocationPermissionScreen = (props) => {
                 <Text style={{ fontSize: 34, color: colors.fadeBlackTextColor, fontWeight: '300', textAlignVertical: 'center' }}>Location</Text>
             </View>
 
-            
+
             <View style={{ marginTop: 30, flex: 1 }}>
                 <Text style={headerStyle}>Location access</Text>
                 <View style={{
@@ -45,7 +60,7 @@ const LocationPermissionScreen = (props) => {
                         <Switch
                             trackColor={{ false: '#767577', true: '#abdbe3' }}
                             thumbColor={isEnabled ? colors.switchColor : '#f4f3f4'}
-                            onValueChange={toggleSwitch}
+                            onValueChange={requestLocationPermission}
                             value={isEnabled}
                         />
                     </View>
