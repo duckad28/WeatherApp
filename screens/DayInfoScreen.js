@@ -20,9 +20,46 @@ const getDayOfWeek = (day) => {
     return dayOfWeeks[t.getDay()];
 }
 
+
+const getTimeDuration = (rise, set) => {
+    let [timeRise, modifierRise] = rise.split(' ');
+    let [hoursRise, minutesRise] = timeRise.split(':');
+    let [timeSet, modifierSet] = set.split(' ');
+    let [hoursSet, minutesSet] = timeSet.split(':');
+
+    let riseTime = { hours: parseInt(hoursRise, 10), minutes: parseInt(minutesRise, 10) };
+    let setTime = { hours: parseInt(hoursSet, 10), minutes: parseInt(minutesSet, 10) };
+    if (modifierRise === modifierSet) {
+        if (setTime.hours >= riseTime.hours) {
+            let min = setTime.minutes - riseTime.minutes + 60;
+            let hour = setTime.hours - riseTime.hours;
+            if (min >= 60) {
+                min = min - 60;
+                hour = hour + 1;
+            }
+            return { hours: hour, minutes: min }
+        } else {
+            let min = setTime.minutes - riseTime.minutes + 60;
+            let hour = setTime.hours + 24 - riseTime.hours;
+            if (min >= 60) {
+                min = min - 60;
+                hour = hour + 1;
+            }
+            return { hours: hour, minutes: min }
+        }
+    }
+    let min = setTime.minutes - riseTime.minutes + 60;
+    let hour = setTime.hours + 12 - riseTime.hours;
+    if (min >= 60) {
+        min = min - 60;
+        hour = hour + 1;
+    }
+    return { hours: hour, minutes: min }
+}
+
 const DayInfoScreen = (props) => {
     let weatherData = props.data;
-    let {isVisible, setVisible} = props;
+    let { isVisible, setVisible } = props;
     let data = {
         date: '15/04/2024',
         dayOfWeeks: 'Monday',
@@ -52,7 +89,7 @@ const DayInfoScreen = (props) => {
         },
         {
             name: 'Wind degree',
-            value: weatherData?.wind_degree 
+            value: weatherData?.wind_degree
         },
         {
             name: 'Wind gust',
@@ -67,14 +104,20 @@ const DayInfoScreen = (props) => {
             value: weatherData?.air_quality["us-epa-index"]
         }
     ]
-    
+
     let highestTemp = Math.round(weatherData?.temp_c);
     let lowestTemp = Math.round(0);
+    let sunrise = weatherData?.astro?.sunrise;
+    let sunset = weatherData?.astro?.sunset;
+    let moonrise = weatherData?.astro?.moonrise;
+    let moonset = weatherData?.astro?.moonset;
+    let sunDur = getTimeDuration(sunrise, sunset);
+    let moonDur = getTimeDuration(moonrise, moonset);
     return (
         <Modal visible={isVisible} transparent={true} animationType='slide'>
-            <View style = {{
-            flex: 1
-        }}>
+            <View style={{
+                flex: 1
+            }}>
                 <View style={{
                     height: 120
                 }}>
@@ -89,7 +132,7 @@ const DayInfoScreen = (props) => {
                     borderTopRightRadius: 30,
                     paddingHorizontal: 20
                 }}>
-                    <TouchableOpacity onPress={()=>setVisible(false)} onS style={{alignSelf: 'center', margin: 10}}>
+                    <TouchableOpacity onPress={() => setVisible(false)} onS style={{ alignSelf: 'center', margin: 10 }}>
                         <View style={{
                             width: 60,
                             height: 10,
@@ -111,16 +154,16 @@ const DayInfoScreen = (props) => {
                         alignItems: 'center',
                         marginTop: 20
                     }}>
-                        <Temperature temp={Math.round(weatherData?.temp_c)} condition = {weatherData?.condition} fontSize={fontSizes.h1}></Temperature>
+                        <Temperature temp={Math.round(weatherData?.temp_c)} condition={weatherData?.condition} fontSize={fontSizes.h1}></Temperature>
                         <Text>{weatherData?.condition?.text}</Text>
                     </View>
                     <ScrollView showsVerticalScrollIndicator={false}>
-                        <FlatList 
-                        data={dayInfoData}
-                        renderItem={({item}) => {
-                            return <ExtraInfoItem data = {item} height = {40} nameStyle={nameTextStyle} valueStyle = {valueTextStyle}></ExtraInfoItem>
-                        }}
-                        keyExtractor={item => item.name}></FlatList>
+                        <FlatList
+                            data={dayInfoData}
+                            renderItem={({ item }) => {
+                                return <ExtraInfoItem data={item} height={40} nameStyle={nameTextStyle} valueStyle={valueTextStyle}></ExtraInfoItem>
+                            }}
+                            keyExtractor={item => item.name}></FlatList>
 
                         <View style={{
                             height: 120,
@@ -131,41 +174,45 @@ const DayInfoScreen = (props) => {
                             margin: 10,
                             justifyContent: 'space-between'
                         }}>
-                            <View style={{flex: 1, padding: 10, borderWidth: 1,
-                            borderColor: colors.fadeTextColor,}}>
+                            <View style={{
+                                flex: 1, padding: 10, borderWidth: 1,
+                                borderColor: colors.fadeTextColor,
+                            }}>
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <FontAwesomeIcon icon={faSun} size={24}></FontAwesomeIcon>
                                     <View>
-                                        <Text>12 hrs</Text>
-                                        <Text>38 mins</Text>
+                                        <Text>{sunDur.hours} hrs</Text>
+                                        <Text>{sunDur.minutes} mins</Text>
                                     </View>
                                 </View>
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Text>Rise</Text>
-                                    <Text>05:38 AM</Text>
+                                    <Text>{sunrise}</Text>
                                 </View>
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Text>Set</Text>
-                                    <Text>06:16 PM</Text>
+                                    <Text>{sunset}</Text>
                                 </View>
                             </View>
-                            
-                            <View style={{flex: 1, padding: 10, borderWidth: 1,
-                            borderColor: colors.fadeTextColor,}}>
+
+                            <View style={{
+                                flex: 1, padding: 10, borderWidth: 1,
+                                borderColor: colors.fadeTextColor,
+                            }}>
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <FontAwesomeIcon icon={faMoon} size={24}></FontAwesomeIcon>
                                     <View>
-                                        <Text>13 hrs</Text>
-                                        <Text>57 mins</Text>
+                                        <Text>{moonDur.hours} hrs</Text>
+                                        <Text>{moonDur.minutes} mins</Text>
                                     </View>
                                 </View>
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Text>Rise</Text>
-                                    <Text>10:58 AM</Text>
+                                    <Text>{moonrise}</Text>
                                 </View>
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Text>Set</Text>
-                                    <Text>12:56 AM</Text>
+                                    <Text>{moonset}</Text>
                                 </View>
                             </View>
                         </View>
@@ -173,21 +220,21 @@ const DayInfoScreen = (props) => {
                 </View>
             </View>
         </Modal>
-        
+
     )
 }
 
 
 
 const Temperature = (props) => {
-    let {temp, condition} = props;
+    let { temp, condition } = props;
     return (
         <View style={{
             flexDirection: 'row',
         }}>
             <Image source={images[getWeatherIcon(condition?.icon)]} style={{ tintColor: '#000000', width: 60, height: 60, justifyContent: 'center', alignContent: 'center' }}></Image>
-            <View style={{width: 20}}></View>
-            <Text style={{color: 'black', fontSize: 48}}>{temp}°</Text>
+            <View style={{ width: 20 }}></View>
+            <Text style={{ color: 'black', fontSize: 48 }}>{temp}°</Text>
         </View>
     )
 }

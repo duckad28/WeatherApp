@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, View, FlatList, TouchableOpacity, ImageBackground, StyleSheet, Image } from 'react-native';
+import { Text, View, FlatList, TouchableOpacity, ImageBackground, StyleSheet, Image, ScrollView } from 'react-native';
 import { colors, fontSizes, images, styles } from '../constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
@@ -19,7 +19,6 @@ const WeatherInfoHorizontal = (props) => {
                 <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                     <Image source={images[getWeatherIcon(condition?.icon)]} style={{ tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center' }}></Image>
                     <View style={{ width: 10 }}></View>
-                    <Text style={{ ...textStyle, width: 40 }}>{dayOfWeeks}</Text>
                     <Text style={{ ...textStyle, width: 50 }}>{timeOfDay}</Text>
                     <View style={{ width: 10 }}></View>
                     <Text style={textStyle}>{condition?.text}</Text>
@@ -122,16 +121,31 @@ const UpcomingWeatherScreen = (props) => {
                 }
                 {/** ---------------- By List ----------------- */}
                 {
-                    isList && <View style={{ height: 500, flexDirection: 'column' }}>
-                        <FlatList data={hourlyData}
+                    isList && <ScrollView style={{ flexDirection: 'column' }} showsVerticalScrollIndicator={false}>
+                        {weatherData.map((weather) => {
+                            let day = new Date(weather?.date);
+                            let options = {weekday: 'long'};
+                            let dayName = day.toLocaleDateString('en-US', options)
+                            return (
+                            <FlatList data={weather?.hour}
+                            style = {{}}
                             showsVerticalScrollIndicator={false}
+                            ListHeaderComponent={
+                                <View style={{paddingTop: 30,}}>
+                                    <Text style = {{fontSize: fontSizes.h4, color: colors.textColor, textAlignVertical: 'center'}}>{dayName}</Text>
+                                </View>
+                                
+                            }
+                            ListFooterComponent={
+                                <View style={{height: 20}}></View>
+                            }
                             renderItem={({ item }) => {
                                 return (
                                     
                                         <WeatherInfoHorizontal onPress={() => {
                                             setModalVisble(true)
-                                            setWeatherInfo(item)
-                                        }} weatherInfo={item}></WeatherInfoHorizontal>
+                                            setWeatherInfo({...item, astro: weather?.astro})
+                                        }} weatherInfo={item} astro = {weather.astro}></WeatherInfoHorizontal>
                 
         
                                 )
@@ -140,8 +154,10 @@ const UpcomingWeatherScreen = (props) => {
                             keyExtractor={item => item.time}>
 
                         </FlatList>
-
-                    </View>
+                            )
+                        }
+                        )}
+                    </ScrollView>
                 }
                 <View style={{ flex: 1 }}></View>
             </View>
