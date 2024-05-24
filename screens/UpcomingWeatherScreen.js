@@ -1,49 +1,35 @@
-import React, {useState} from 'react';
-import {  Text, View, FlatList, TouchableOpacity, ImageBackground, StyleSheet, Image } from 'react-native';
+import React, { useState } from 'react';
+import { Text, View, FlatList, TouchableOpacity, ImageBackground, StyleSheet, Image } from 'react-native';
 import { colors, fontSizes, images, styles } from '../constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { WeatherInfoV, Temperature } from '../components';
 import { faCloud, faCloudRain, faTint, faSun } from '@fortawesome/free-solid-svg-icons';
-import { getDayOfWeek, getTimeOfDay } from '../utilities';
+import { getDayOfWeek, getTimeOfDay, getWeatherIcon } from '../utilities';
 import DayInfoScreen from './DayInfoScreen';
 
 const WeatherInfoHorizontal = (props) => {
-    let {dt_txt, main , weather, rain} = props.weatherInfo;
-    let dayOfWeeks = getDayOfWeek(dt_txt);
-    let timeOfDay = getTimeOfDay(dt_txt);
-    let mainWeather = weather[0].main;
-    let highestTemp = Math.round(main.temp_max);
-    let lowestTemp = Math.round(main.temp_min);
-    let icon = '/openweathermap.org/img/w/' + weather[0].icon +'.png';
-    let rainPos = 0;
-    if (rain !== undefined) {
-        rainPos = rain["3h"]
-    }
+    let { temp_c, time, condition, daily_chance_of_rain } = props.weatherInfo;
+    let timeOfDay = getTimeOfDay(time);
+    let dayOfWeeks = getDayOfWeek(time);
+    let rainPos = daily_chance_of_rain;
     return (
-        <TouchableOpacity onPress = {props.onPress}>
-            <View style={{...containerStyle, borderBottomColor: colors.borderColor, borderBottomWidth: 1}}>
-            <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
-                <Image source={{uri: 'https:' + icon}} style={{width: 32, height: 32}}></Image>
-                <View style={{ width: 10 }}></View>
-                <Text style={{...textStyle, width: 40}}>{dayOfWeeks}</Text>
-                <View style={{ width: 10 }}></View>
-                <Text style={textStyle}>{timeOfDay}</Text>
-                <View style={{ width: 10 }}></View>
-                <Text style={textStyle}>{mainWeather}</Text>
-                
-            </View>
+        <TouchableOpacity onPress={props.onPress}>
+            <View style={{ ...containerStyle, borderBottomColor: colors.borderColor, borderBottomWidth: 1 }}>
+                <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
+                    <Image source={images[getWeatherIcon(condition?.icon)]} style={{ tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center' }}></Image>
+                    <View style={{ width: 10 }}></View>
+                    <Text style={{ ...textStyle, width: 40 }}>{dayOfWeeks}</Text>
+                    <Text style={{ ...textStyle, width: 50 }}>{timeOfDay}</Text>
+                    <View style={{ width: 10 }}></View>
+                    <Text style={textStyle}>{condition?.text}</Text>
 
-            <View style={{ flexDirection: 'row',paddingHorizontal: 25, alignItems: 'center', width: 100 }}>
-                <FontAwesomeIcon icon={faTint} color={colors.textColor}></FontAwesomeIcon>
-                <View style={{width: 5}}></View>
-                <Text style={textStyle}>{rainPos}</Text>
+                </View>
+
+                <Text style={{color: colors.textColor, fontSize: fontSizes.h6}}>{Math.round(temp_c)}°</Text>
             </View>
-            
-            <Temperature highest={highestTemp} lowest={lowestTemp} fontSize={fontSizes.h5}></Temperature>
-        </View>
         </TouchableOpacity>
-        
+
     )
 }
 const UpcomingWeatherScreen = (props) => {
@@ -51,20 +37,22 @@ const UpcomingWeatherScreen = (props) => {
     const { navigate } = navigation;
     const { route } = props;
     let weatherData = route.params.data;
+    let hourlyData = weatherData.reduce((acc, ele) => acc.concat(ele?.hour), [])
     let [weatherInfo, setWeatherInfo] = useState({});
     let [isGraph, setGraph] = useState(true);
     let [isList, setList] = useState(false);
     let [isModalVisible, setModalVisble] = useState(false);
+    
     let max = Math.max.apply(Math, weatherData.map(function (weather) {
-        return weather.main.temp_max;
+        return weather?.day?.maxtemp_c;
     }))
     let min = Math.min.apply(Math, weatherData.map(function (weather) {
-        return weather.main.temp_min;
+        return weather?.day?.mintemp_c;
     }))
     return (
-        
+
         <ImageBackground source={images.image3} style={{ flex: 1 }}>
-            {isModalVisible && <DayInfoScreen isVisible={isModalVisible} setVisible = {setModalVisble} data = {weatherInfo}></DayInfoScreen>}
+            {isModalVisible && <DayInfoScreen isVisible={isModalVisible} setVisible={setModalVisble} data={weatherInfo}></DayInfoScreen>}
             <View style={{ flex: 1, padding: 10 }}>
                 <TouchableOpacity onPress={() => navigate('MainScreen')} style={{ height: 40 }}>
                     <FontAwesomeIcon icon={faArrowLeft} size={26} color={colors.textColor}></FontAwesomeIcon>
@@ -75,7 +63,7 @@ const UpcomingWeatherScreen = (props) => {
                 </View>
 
                 {/** ---------------- Button ----------------- */}
-                <View style={{ height: 60,flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <View style={{ height: 60, flexDirection: 'row', justifyContent: 'flex-end' }}>
                     <View style={wrapperStyle}>
                         <TouchableOpacity onPress={
                             () => {
@@ -84,17 +72,17 @@ const UpcomingWeatherScreen = (props) => {
                                     setList(false)
                                 ]
                             }
-                        } 
-                        style={{
-                            backgroundColor: isGraph ? colors.buttonColor : null,
-                            borderRadius: 10,height: 40, width: 60,
-                            justifyContent: 'center', alignItems: 'center'
+                        }
+                            style={{
+                                backgroundColor: isGraph ? colors.buttonColor : null,
+                                borderRadius: 10, height: 40, width: 60,
+                                justifyContent: 'center', alignItems: 'center'
                             }}>
-                                
-                            <Text style={{...textStyle, color: isGraph ? colors.textColor : colors.fadeBlackTextColor}}>GRAPH</Text>
-                        </TouchableOpacity> 
 
-                        <View style={{width: 5}}></View>
+                            <Text style={{ ...textStyle, color: isGraph ? colors.textColor : colors.fadeBlackTextColor }}>DAYS</Text>
+                        </TouchableOpacity>
+
+                        <View style={{ width: 5 }}></View>
 
                         <TouchableOpacity onPress={
                             () => {
@@ -103,17 +91,17 @@ const UpcomingWeatherScreen = (props) => {
                                     setList(true)
                                 ]
                             }
-                        } 
-                        style={{
-                            backgroundColor: isList ? colors.buttonColor : null,
-                            borderRadius: 10,height: 40, width: 60,
-                            justifyContent: 'center', alignItems: 'center'
+                        }
+                            style={{
+                                backgroundColor: isList ? colors.buttonColor : null,
+                                borderRadius: 10, height: 40, width: 60,
+                                justifyContent: 'center', alignItems: 'center'
                             }}>
-                                
-                            <Text style={{...textStyle, color: isList ? colors.textColor : colors.fadeBlackTextColor}}>LIST</Text>
+
+                            <Text style={{ ...textStyle, color: isList ? colors.textColor : colors.fadeBlackTextColor }}>HOURS</Text>
                         </TouchableOpacity>
                     </View>
-                    
+
                 </View>
                 {/** -------------------------- Info -------------------------- */}
 
@@ -124,35 +112,41 @@ const UpcomingWeatherScreen = (props) => {
                             horizontal={true}
                             showsHorizontalScrollIndicator={false}
                             renderItem={({ item }) => {
-                                return <WeatherInfoV weatherInfo={item} max = {max} min = {min}></WeatherInfoV>
+                                return <WeatherInfoV weatherInfo={item} max={max} min={min}></WeatherInfoV>
                             }}
-                            keyExtractor={item => item.dt}>
+                            keyExtractor={item => item.date}>
 
                         </FlatList>
 
-                </View>
+                    </View>
                 }
                 {/** ---------------- By List ----------------- */}
                 {
                     isList && <View style={{ height: 500, flexDirection: 'column' }}>
-                        <FlatList data={weatherData}
+                        <FlatList data={hourlyData}
                             showsVerticalScrollIndicator={false}
                             renderItem={({ item }) => {
-                                return <WeatherInfoHorizontal onPress = {()=> {
-                                    setModalVisble(true)
-                                    setWeatherInfo(item)
-                                }} weatherInfo={item}></WeatherInfoHorizontal>
+                                return (
+                                    
+                                        <WeatherInfoHorizontal onPress={() => {
+                                            setModalVisble(true)
+                                            setWeatherInfo(item)
+                                        }} weatherInfo={item}></WeatherInfoHorizontal>
+                
+        
+                                )
+
                             }}
-                            keyExtractor={item => item.dt}>
+                            keyExtractor={item => item.time}>
 
                         </FlatList>
 
-                </View>
+                    </View>
                 }
                 <View style={{ flex: 1 }}></View>
             </View>
         </ImageBackground>
-       
+
     )
 }
 
@@ -175,7 +169,7 @@ const containerStyle = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop : 20,
+    marginTop: 20,
     height: 40
 })
 export default UpcomingWeatherScreen;

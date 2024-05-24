@@ -6,12 +6,13 @@ import {
     Modal,
     TouchableOpacity,
     StyleSheet,
-    FlatList
+    FlatList, Image
 } from 'react-native';
-import { colors, fontSizes } from '../constants';
+import { colors, fontSizes, images } from '../constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCross, faMoon, faMultiply, faSun, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { ExtraInfoItem } from '../components';
+import { getWeatherIcon } from '../utilities';
 
 const dayOfWeeks = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const getDayOfWeek = (day) => {
@@ -21,7 +22,6 @@ const getDayOfWeek = (day) => {
 
 const DayInfoScreen = (props) => {
     let weatherData = props.data;
-    let {dt_txt, main , weather, rain} = weatherData
     let {isVisible, setVisible} = props;
     let data = {
         date: '15/04/2024',
@@ -31,45 +31,45 @@ const DayInfoScreen = (props) => {
     }
     const dayInfoData = [
         {
-            name: 'RealFeel high',
-            value: Math.round(main.temp_max)
-        },
-        {
-            name: 'RealFeel low',
-            value: Math.round(main.temp_min)
+            name: 'Rain probablity',
+            value: Math.round(weatherData?.chance_of_rain) + "%"
         },
         {
             name: 'RealFeel',
-            value: Math.round(main.temp)
+            value: Math.round(weatherData?.feelslike_c) + "°"
         },
         {
             name: 'Humidity',
-            value: main.humidity
+            value: weatherData?.humidity + "%"
         },
         {
             name: 'Cloud',
-            value: weatherData.clouds.all + "%"
+            value: weatherData?.cloud + "%"
         },
         {
             name: 'Wind speed',
-            value: weatherData.wind.speed
+            value: weatherData?.wind_kph + "kph"
         },
         {
             name: 'Wind degree',
-            value: weatherData.wind.deg
+            value: weatherData?.wind_degree 
         },
         {
             name: 'Wind gust',
-            value: weatherData.wind.gust
+            value: weatherData?.gust_kph + "kph"
         },
         {
-            name: 'Visibility',
-            value: weatherData.visibility
+            name: 'UV',
+            value: weatherData?.uv
+        },
+        {
+            name: 'AQI',
+            value: weatherData?.air_quality["us-epa-index"]
         }
     ]
     
-    let highestTemp = Math.round(main.temp_max);
-    let lowestTemp = Math.round(main.temp_min);
+    let highestTemp = Math.round(weatherData?.temp_c);
+    let lowestTemp = Math.round(0);
     return (
         <Modal visible={isVisible} transparent={true} animationType='slide'>
             <View style = {{
@@ -103,16 +103,16 @@ const DayInfoScreen = (props) => {
                         justifyContent: 'center',
                         alignItems: 'center'
                     }}>
-                        <Text style={headerStyle}>{getDayOfWeek(dt_txt)}</Text>
-                        <Text style={normalTextStyle}>{dt_txt}</Text>
+                        <Text style={headerStyle}>{getDayOfWeek(weatherData?.time)}</Text>
+                        <Text style={normalTextStyle}>{weatherData?.time}</Text>
                     </View>
                     <View style={{
                         justifyContent: 'center',
                         alignItems: 'center',
                         marginTop: 20
                     }}>
-                        <Temperature highest={Math.round(main.temp_max)} lowest={Math.round(main.temp_min)} fontSize={fontSizes.h1}></Temperature>
-                        <Text>{weatherData.weather[0].description}</Text>
+                        <Temperature temp={Math.round(weatherData?.temp_c)} condition = {weatherData?.condition} fontSize={fontSizes.h1}></Temperature>
+                        <Text>{weatherData?.condition?.text}</Text>
                     </View>
                     <ScrollView showsVerticalScrollIndicator={false}>
                         <FlatList 
@@ -180,31 +180,14 @@ const DayInfoScreen = (props) => {
 
 
 const Temperature = (props) => {
-    let {highest, lowest, fontSize} = props;
+    let {temp, condition} = props;
     return (
         <View style={{
             flexDirection: 'row',
         }}>
-
-            <Text style={{color: 'black', fontSize: fontSize, textAlignVertical: 'bottom'}}>{highest}</Text>
-
-            <View style={{
-            }}>
-                <Text style={{ position: 'absolute', top: 0, fontSize: fontSize/2, color: 'black' }}>o</Text>
-            </View>
-
-            <Text style={{
-                paddingLeft: fontSize/4,
-                marginHorizontal: fontSize/4,
-                color: 'black', fontSize: fontSize
-            }}> </Text>
-
-            <Text style={{color: 'black', textAlignVertical: 'bottom', fontSize: fontSize*0.8}}>{lowest}</Text>
-            <View style={{
-                width: 10
-            }}>
-                <Text style={{ position: 'absolute', top: fontSize*0.3, fontSize: fontSize/3, color: 'black' }}>o</Text>
-            </View>
+            <Image source={images[getWeatherIcon(condition?.icon)]} style={{ tintColor: '#000000', width: 60, height: 60, justifyContent: 'center', alignContent: 'center' }}></Image>
+            <View style={{width: 20}}></View>
+            <Text style={{color: 'black', fontSize: 48}}>{temp}°</Text>
         </View>
     )
 }

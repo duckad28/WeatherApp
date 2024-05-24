@@ -1,17 +1,17 @@
 import React from 'react';
 import {Text, View, StyleSheet, Image} from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import {colors, fontSizes} from '../constants';
+import {colors, fontSizes, images} from '../constants';
 import {Temperature} from '../components';
 import {faCloud, faCloudRain, faSun } from '@fortawesome/free-solid-svg-icons';
-
+import { getWeatherIcon } from '../utilities';
 
 const WeatherInfoH = (props) => {
     let {highestTemp, lowestTemp, weather, dayOfWeeks, icon} = props.weatherInfo;
     return (
         <View style={containerStyle}>
             <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
-                <Image source={{uri: 'https:' + icon}} style={{tintColor: '#ffffff', width: 32, height: 32}}></Image>
+                <Image source={images[getWeatherIcon(icon)]} style={{ tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center' }}></Image>
                 <View style={{ width: 10 }}></View>
                 <Text style={textStyle}>{dayOfWeeks}</Text>
                 <View style={{ width: 10 }}></View>

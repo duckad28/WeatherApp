@@ -14,7 +14,7 @@ const LocationItem = (props) => {
     return (
     <TouchableOpacity onPress={onPress} style={{ marginVertical: 10 }}>
             <ImageBackground source={images.image1} style={{
-                height: 100,
+                height: 60,
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -26,16 +26,8 @@ const LocationItem = (props) => {
                 <View>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={{ fontSize: 18, fontWeight: '600', color: colors.textColor }}>{location}</Text>
-                        {isSelected == true && <FontAwesomeIcon icon={faLocationPin} color={colors.textColor} style={{ marginLeft: 6 }} size={18}></FontAwesomeIcon>}
+                          {isSelected == true && <FontAwesomeIcon icon={faLocationPin} color={colors.textColor} style={{ marginLeft: 6 }} size={18}></FontAwesomeIcon>}
                     </View>
-                    <View>
-                        <Temperature highest = {highest} lowest={lowest} fontSize={fontSizes.h5}></Temperature>
-                    </View>
-                    
-                    
-                </View>
-                <View>
-                    <Text style={{ fontSize: 30 }}>{current}°</Text>
                 </View>
             </ImageBackground>
     </TouchableOpacity>)

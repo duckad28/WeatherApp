@@ -1,4 +1,5 @@
 const phase = ["AM", "PM"]
+
 const getTimeOfDay = (day) => {
     let t = new Date(day);
     let temp = t.getHours();
