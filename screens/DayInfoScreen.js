@@ -32,7 +32,7 @@ const getTimeDuration = (rise, set) => {
     if (modifierRise === modifierSet) {
         if (setTime.hours >= riseTime.hours) {
             let min = setTime.minutes - riseTime.minutes + 60;
-            let hour = setTime.hours - riseTime.hours;
+            let hour = setTime.hours - riseTime.hours - 1;
             if (min >= 60) {
                 min = min - 60;
                 hour = hour + 1;
@@ -40,7 +40,7 @@ const getTimeDuration = (rise, set) => {
             return { hours: hour, minutes: min }
         } else {
             let min = setTime.minutes - riseTime.minutes + 60;
-            let hour = setTime.hours + 24 - riseTime.hours;
+            let hour = setTime.hours + 23 - riseTime.hours;
             if (min >= 60) {
                 min = min - 60;
                 hour = hour + 1;
@@ -49,7 +49,7 @@ const getTimeDuration = (rise, set) => {
         }
     }
     let min = setTime.minutes - riseTime.minutes + 60;
-    let hour = setTime.hours + 12 - riseTime.hours;
+    let hour = setTime.hours + 11 - riseTime.hours;
     if (min >= 60) {
         min = min - 60;
         hour = hour + 1;
