@@ -12,6 +12,7 @@ import { LocationItem } from '../components';
 import { colors } from '../constants';
 import { fetchSuggestLocation } from '../repositories/fetchData';
 import {debounce} from 'lodash';
+import { storeData, getData } from '../utilities/asyncStorage';
 
 const LocationScreen = (props) => {
     const { navigation } = props;
@@ -51,7 +52,7 @@ const LocationScreen = (props) => {
             }}>
                 <View
                     style={{ flex: 1, backgroundColor: 'white', marginHorizontal: 10, marginVertical: 10 }}>
-                    <TouchableOpacity onPress={() => navigate('MainScreen')} style={{ height: 40 }}>
+                    <TouchableOpacity onPress={() => {navigate('MainScreen')}} style={{ height: 40 }}>
                         <FontAwesomeIcon icon={faArrowLeft} size={26}></FontAwesomeIcon>
                     </TouchableOpacity>
                     <View style={{ marginHorizontal: 20, height: 80, justifyContent: 'center' }}>
@@ -73,6 +74,7 @@ const LocationScreen = (props) => {
                             onChangeText={(text) => {
                                 setSearchText(text)
                             }} onSubmitEditing={() => {
+                                storeData('city', searchText);
                                 navigate('MainScreen', { cityName: searchText })
                             }} placeholder='Enter location' style={{}}></TextInput>
                     </View>
@@ -87,6 +89,7 @@ const LocationScreen = (props) => {
                             showsVerticalScrollIndicator={false}
                             renderItem={({ item }) => {
                                 return <LocationItem eachLocation={item} onPress={() => {
+                                    storeData('city', item.location);
                                     navigate('MainScreen', { cityName: item.location })
                                     let newLocationData = locationData.map(eachLocationItem => {
                                         return {
@@ -132,6 +135,7 @@ const LocationScreen = (props) => {
                         <TextInput
                             onChangeText={ handleTextDebounce}
                             onSubmitEditing={() => {
+                                storeData('city', searchText);
                                 navigate('MainScreen', { cityName: searchText })
                             }} placeholder='Enter location' style={{}}></TextInput>
                         

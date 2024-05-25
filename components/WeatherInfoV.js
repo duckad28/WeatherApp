@@ -34,7 +34,7 @@ const WeatherInfoV = (props) => {
             <View style={{
                 flexDirection: 'column', height: 200, justifyContent: 'space-between', alignItems: 'center'
             }}>
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: dMax * 5 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: dMax * 10 }}>
                     <Text style={textStyle}>{highestTemp}°</Text>
                 </View>
 
@@ -49,7 +49,7 @@ const WeatherInfoV = (props) => {
 
                 </View>
 
-                <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end', marginBottom: dMin * 5 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end', marginBottom: dMin * 10 }}>
                     <Text style={textStyle}>{lowestTemp}°</Text>
                 </View>
             </View>

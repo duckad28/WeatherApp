@@ -36,7 +36,7 @@ const UpcomingWeatherScreen = (props) => {
     const { navigate } = navigation;
     const { route } = props;
     let weatherData = route.params.data;
-    let hourlyData = weatherData.reduce((acc, ele) => acc.concat(ele?.hour), [])
+    // let hourlyData = weatherData.reduce((acc, ele) => acc.concat(ele?.hour), [])
     let [weatherInfo, setWeatherInfo] = useState({});
     let [isGraph, setGraph] = useState(true);
     let [isList, setList] = useState(false);
@@ -50,7 +50,7 @@ const UpcomingWeatherScreen = (props) => {
     }))
     return (
 
-        <ImageBackground source={images.image3} style={{ flex: 1 }}>
+        <ImageBackground source={(weatherData?.current?.is_day == 1) ? images.image3 : images.image4} style={{ flex: 1 }}>
             {isModalVisible && <DayInfoScreen isVisible={isModalVisible} setVisible={setModalVisble} data={weatherInfo}></DayInfoScreen>}
             <View style={{ flex: 1, padding: 10 }}>
                 <TouchableOpacity onPress={() => navigate('MainScreen')} style={{ height: 40 }}>
@@ -151,7 +151,7 @@ const UpcomingWeatherScreen = (props) => {
                                 )
 
                             }}
-                            keyExtractor={item => item.time}>
+                            keyExtractor={(item, index) => index}>
 
                         </FlatList>
                             )

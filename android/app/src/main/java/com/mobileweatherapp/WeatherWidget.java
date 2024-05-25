@@ -50,7 +50,6 @@ public class WeatherWidget extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
-            Toast.makeText(context, "Widget has been updated! ", Toast.LENGTH_SHORT).show();
         }
     }
 }
