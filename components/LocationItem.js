@@ -9,10 +9,10 @@ import Temperature from './Temperature';
 
 
 const LocationItem = (props) => {
-    let { location, highest, lowest, current, isSelected } = props.eachLocation
-    let onPress = props.onPress
+    let {location} = props.eachLocation;
+    let onPress = props.onPress;
     return (
-    <TouchableOpacity onPress={onPress} style={{ marginVertical: 10 }}>
+    <TouchableOpacity onPress={onPress} style={{ marginVertical: 10, flex: 1 }}>
             <ImageBackground source={images.image1} style={{
                 height: 60,
                 flexDirection: 'row',
@@ -26,7 +26,7 @@ const LocationItem = (props) => {
                 <View>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={{ fontSize: 18, fontWeight: '600', color: colors.textColor }}>{location}</Text>
-                          {isSelected == true && <FontAwesomeIcon icon={faLocationPin} color={colors.textColor} style={{ marginLeft: 6 }} size={18}></FontAwesomeIcon>}
+                          {/* {isSelected == true && <FontAwesomeIcon icon={faLocationPin} color={colors.textColor} style={{ marginLeft: 6 }} size={18}></FontAwesomeIcon>} */}
                     </View>
                 </View>
             </ImageBackground>

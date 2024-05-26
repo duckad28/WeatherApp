@@ -64,8 +64,7 @@ const MainScreen = (props) => {
         let city = await getData('city');
         if (city) {
             setCityName(city)
-        }
-        fetchForecast({ cityName: cityName })
+            fetchForecast({ cityName: city})
             .then((data) => {
                 let t = data?.forecast?.forecastday[0]?.hour;
                 setWeatherData({
@@ -121,6 +120,65 @@ const MainScreen = (props) => {
                     }))
                 })
         })
+        } else {
+            fetchForecast({ cityName: cityName })
+            .then((data) => {
+                let t = data?.forecast?.forecastday[0]?.hour;
+                setWeatherData({
+                    aqiData: data?.current?.air_quality,
+                    currentData: data?.current,
+                    forecastData: data?.forecast?.forecastday,
+                    extraInfoData: [
+                        {
+                            name: 'Humidity',
+                            value: Math.round(data?.current?.humidity) + "%"
+                        },
+                        {
+                            name: 'Pressure',
+                            value: Math.round(data?.current?.pressure_mb) + "hPa"
+                        },
+                        {
+                            name: 'UV',
+                            value: Math.round(data?.current?.uv)
+                        },
+                        {
+                            name: 'Real feel',
+                            value: Math.round(data?.current?.feelslike_c) + "°"
+                        }
+                    ],
+                    briefForcast: [
+                        {
+                            date: data.forecast.forecastday[0].date,
+                            dayOfWeeks: 'Today',
+                            highestTemp: Math.round(data.forecast.forecastday[0].day.maxtemp_c),
+                            lowestTemp: Math.round(data.forecast.forecastday[0].day.mintemp_c),
+                            weather: data.forecast.forecastday[0].day.condition.text,
+                            icon: data.forecast.forecastday[0].day.condition.icon,
+                        },
+                        {
+                            date: data.forecast.forecastday[1].date,
+                            dayOfWeeks: 'Tomorrow',
+                            highestTemp: Math.round(data.forecast.forecastday[1].day.maxtemp_c),
+                            lowestTemp: Math.round(data.forecast.forecastday[1].day.mintemp_c),
+                            weather: data.forecast.forecastday[1].day.condition.text,
+                            icon: data.forecast.forecastday[1].day.condition.icon,
+                        },
+                        {
+                            date: data.forecast.forecastday[2].date,
+                            dayOfWeeks: getDayOfWeek(data.forecast.forecastday[2].date),
+                            highestTemp: Math.round(data.forecast.forecastday[2].day.maxtemp_c),
+                            lowestTemp: Math.round(data.forecast.forecastday[2].day.mintemp_c),
+                            weather: data.forecast.forecastday[2].day.condition.text,
+                            icon: data.forecast.forecastday[2].day.condition.icon,
+                        },
+                    ],
+                    maxTempInDay: Math.max.apply(Math, t.map(function (weather) {
+                        return weather?.temp_c;
+                    }))
+                })
+        })
+        }
+        
 
         await delay(2000)
         setIsFetched(true);
@@ -128,7 +186,7 @@ const MainScreen = (props) => {
 
     const handleRefresh = () => {
         setRefreshing(true);
-        fetchWeather(cityName, unit);
+        fetchWeather();
         setRefreshing(false);
     }
     const handleAccessLocation = () => {
@@ -151,6 +209,7 @@ const MainScreen = (props) => {
 
     useEffect(() => {
         LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+        setCityName(route.params.cityName)
         fetchWeather();
     }, [route.params.cityName])
 
@@ -380,7 +439,7 @@ const MainScreen = (props) => {
                                         renderItem={({ item }) => {
                                             return <WeatherHourlyV max={weatherData?.maxTempInDay} temp={Math.round(item.temp_c)} hour={item.time} icon={item.condition.icon}></WeatherHourlyV>
                                         }}
-                                        keyExtractor={item => item.time}></FlatList>
+                                        keyExtractor={(item, index) => index}></FlatList>
 
                                 </View>
                             </View>

@@ -15,7 +15,7 @@ const WeatherInfoHorizontal = (props) => {
     let rainPos = daily_chance_of_rain;
     return (
         <TouchableOpacity onPress={props.onPress}>
-            <View style={{ ...containerStyle, borderBottomColor: colors.borderColor, borderBottomWidth: 1 }}>
+            <View style={{ ...containerStyle, borderBottomColor: colors.borderColor, borderBottomWidth: 1, marginHorizontal: 5 }}>
                 <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                     <Image source={images[getWeatherIcon(condition?.icon)]} style={{ tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center' }}></Image>
                     <View style={{ width: 10 }}></View>
@@ -25,7 +25,7 @@ const WeatherInfoHorizontal = (props) => {
 
                 </View>
 
-                <Text style={{color: colors.textColor, fontSize: fontSizes.h6}}>{Math.round(temp_c)}°</Text>
+                <Text style={{ color: colors.textColor, fontSize: fontSizes.h6 }}>{Math.round(temp_c)}°</Text>
             </View>
         </TouchableOpacity>
 
@@ -41,7 +41,7 @@ const UpcomingWeatherScreen = (props) => {
     let [isGraph, setGraph] = useState(true);
     let [isList, setList] = useState(false);
     let [isModalVisible, setModalVisble] = useState(false);
-    
+
     let max = Math.max.apply(Math, weatherData.map(function (weather) {
         return weather?.day?.maxtemp_c;
     }))
@@ -122,38 +122,39 @@ const UpcomingWeatherScreen = (props) => {
                 {/** ---------------- By List ----------------- */}
                 {
                     isList && <ScrollView style={{ flexDirection: 'column' }} showsVerticalScrollIndicator={false}>
-                        {weatherData.map((weather) => {
+                        {weatherData.map((weather, index) => {
                             let day = new Date(weather?.date);
-                            let options = {weekday: 'long'};
+                            let options = { weekday: 'long' };
                             let dayName = day.toLocaleDateString('en-US', options)
                             return (
-                            <FlatList data={weather?.hour}
-                            style = {{}}
-                            showsVerticalScrollIndicator={false}
-                            ListHeaderComponent={
-                                <View style={{paddingTop: 30,}}>
-                                    <Text style = {{fontSize: fontSizes.h4, color: colors.textColor, textAlignVertical: 'center'}}>{dayName}</Text>
-                                </View>
-                                
-                            }
-                            ListFooterComponent={
-                                <View style={{height: 20}}></View>
-                            }
-                            renderItem={({ item }) => {
-                                return (
-                                    
-                                        <WeatherInfoHorizontal onPress={() => {
-                                            setModalVisble(true)
-                                            setWeatherInfo({...item, astro: weather?.astro})
-                                        }} weatherInfo={item} astro = {weather.astro}></WeatherInfoHorizontal>
-                
-        
-                                )
 
-                            }}
-                            keyExtractor={(item, index) => index}>
+                                <FlatList key={index} data={weather?.hour}
+                                    style={{}}
+                                    showsVerticalScrollIndicator={false}
+                                    ListHeaderComponent={
+                                        <View style={{ paddingTop: 30, }}>
+                                            <Text style={{ fontSize: fontSizes.h4, color: colors.textColor, textAlignVertical: 'center' }}>{dayName}</Text>
+                                        </View>
 
-                        </FlatList>
+                                    }
+                                    ListFooterComponent={
+                                        <View style={{ height: 20 }}></View>
+                                    }
+                                    renderItem={({ item }) => {
+                                        return (
+
+                                            <WeatherInfoHorizontal onPress={() => {
+                                                setModalVisble(true)
+                                                setWeatherInfo({ ...item, astro: weather?.astro })
+                                            }} weatherInfo={item} astro={weather.astro}></WeatherInfoHorizontal>
+
+
+                                        )
+
+                                    }}
+                                    keyExtractor={(item, index) => index}>
+
+                                </FlatList>
                             )
                         }
                         )}
