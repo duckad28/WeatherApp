@@ -1,11 +1,11 @@
 import React from 'react';
 import {Text, View, StyleSheet, Image} from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { getWeatherIcon } from '../utilities';
+import { getWeatherIcon, cToF } from '../utilities';
 import {colors, fontSizes, images} from '../constants';
 
 const WeatherHourlyV = (props) => {
-    let {temp, hour} = props;
+    let {unit, temp, hour} = props;
     let {max} = props;
     let dMax = Math.round(max) - temp;
     hour = toHour(hour);
@@ -20,7 +20,7 @@ const WeatherHourlyV = (props) => {
             alignItems: 'center',
             }}>
             <View style={{ flexDirection: 'column', height: 100, justifyContent: 'flex-start', }}>
-                <Text style={{ color: colors.textColor, fontSize: 20, marginTop: dMax*5}}>{temp}°</Text>
+                <Text style={{ color: colors.textColor, fontSize: 20, marginTop: dMax*5}}>{unit ? temp : cToF(temp)}°</Text>
             </View>
             <Image source={images[getWeatherIcon(icon)]} style={{ tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center' }}></Image>
             <Text style={textStyle}>{hour}</Text>

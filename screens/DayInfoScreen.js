@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import { colors, fontSizes, images } from '../constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faCross, faMoon, faMultiply, faSun, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
 import { ExtraInfoItem } from '../components';
-import { getWeatherIcon } from '../utilities';
+import { cToF, getWeatherIcon } from '../utilities';
 
 const dayOfWeeks = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const getDayOfWeek = (day) => {
@@ -59,13 +59,7 @@ const getTimeDuration = (rise, set) => {
 
 const DayInfoScreen = (props) => {
     let weatherData = props.data;
-    let { isVisible, setVisible } = props;
-    let data = {
-        date: '15/04/2024',
-        dayOfWeeks: 'Monday',
-        highestTemp: 30,
-        lowestTemp: 24,
-    }
+    let { isVisible, setVisible, unit } = props;
     const dayInfoData = [
         {
             name: 'Rain probablity',
@@ -73,7 +67,7 @@ const DayInfoScreen = (props) => {
         },
         {
             name: 'RealFeel',
-            value: Math.round(weatherData?.feelslike_c) + "°"
+            value: unit ? Math.round(weatherData?.feelslike_c) : cToF(weatherData?.feelslike_c) + "°"
         },
         {
             name: 'Humidity',
@@ -154,7 +148,7 @@ const DayInfoScreen = (props) => {
                         alignItems: 'center',
                         marginTop: 20
                     }}>
-                        <Temperature temp={Math.round(weatherData?.temp_c)} condition={weatherData?.condition} fontSize={fontSizes.h1}></Temperature>
+                        <Temperature temp={Math.round(weatherData?.temp_c)} condition={weatherData?.condition} fontSize={fontSizes.h1} unit={unit}></Temperature>
                         <Text>{weatherData?.condition?.text}</Text>
                     </View>
                     <ScrollView showsVerticalScrollIndicator={false}>
@@ -227,14 +221,14 @@ const DayInfoScreen = (props) => {
 
 
 const Temperature = (props) => {
-    let { temp, condition } = props;
+    let { temp, condition, unit } = props;
     return (
         <View style={{
             flexDirection: 'row',
         }}>
             <Image source={images[getWeatherIcon(condition?.icon)]} style={{ tintColor: '#000000', width: 60, height: 60, justifyContent: 'center', alignContent: 'center' }}></Image>
             <View style={{ width: 20 }}></View>
-            <Text style={{ color: 'black', fontSize: 48 }}>{temp}°</Text>
+            <Text style={{ color: 'black', fontSize: 48 }}>{unit ? temp : cToF(temp)}°</Text>
         </View>
     )
 }

@@ -3,11 +3,11 @@ import {Text, View, StyleSheet, Image} from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {colors, fontSizes, images} from '../constants';
 import {Temperature} from '../components';
-import {faCloud, faCloudRain, faSun } from '@fortawesome/free-solid-svg-icons';
-import { getWeatherIcon } from '../utilities';
+import { getWeatherIcon, cToF } from '../utilities';
 
 const WeatherInfoH = (props) => {
     let {highestTemp, lowestTemp, weather, dayOfWeeks, icon} = props.weatherInfo;
+    let {unit} = props;
     return (
         <View style={containerStyle}>
             <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
@@ -17,7 +17,7 @@ const WeatherInfoH = (props) => {
                 <View style={{ width: 10 }}></View>
                 <Text style={sTextStyle}>{weather}</Text>
             </View>
-            <Temperature highest={highestTemp} lowest={lowestTemp} fontSize={fontSizes.h5}></Temperature>
+            <Temperature highest={highestTemp} lowest={lowestTemp} fontSize={fontSizes.h5} unit = {unit}></Temperature>
         </View>
     )
 }

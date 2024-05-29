@@ -2,11 +2,12 @@ import React from 'react';
 import { Text, View, StyleSheet, Image } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { colors, fontSizes, images } from '../constants';
-import { faCloud, faCloudRain, faMoon, faSun, faTint } from '@fortawesome/free-solid-svg-icons';
-import { getDayOfWeek, getTimeOfDay, getDate, getWeatherIcon } from '../utilities';
+import { getDayOfWeek, cToF, getWeatherIcon } from '../utilities';
+import { faTint } from '@fortawesome/free-solid-svg-icons';
 
 const WeatherInfoV = (props) => {
     let {day, date} = props.weatherInfo;
+    let {unit} = props;
     let dayOfWeeks = getDayOfWeek(date);
     let highestTemp = Math.round(day.maxtemp_c);
     let lowestTemp = Math.round(day.mintemp_c);
@@ -35,7 +36,7 @@ const WeatherInfoV = (props) => {
                 flexDirection: 'column', height: 200, justifyContent: 'space-between', alignItems: 'center'
             }}>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: dMax * 10 }}>
-                    <Text style={textStyle}>{highestTemp}°</Text>
+                    <Text style={textStyle}>{unit ? highestTemp : cToF(highestTemp)}°</Text>
                 </View>
 
                 <View style={{
@@ -50,7 +51,7 @@ const WeatherInfoV = (props) => {
                 </View>
 
                 <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end', marginBottom: dMin * 10 }}>
-                    <Text style={textStyle}>{lowestTemp}°</Text>
+                    <Text style={textStyle}>{unit ? lowestTemp : cToF(lowestTemp)}°</Text>
                 </View>
             </View>
 

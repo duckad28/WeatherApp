@@ -12,22 +12,22 @@ import {
     ActivityIndicator,
     RefreshControl,
     Animated,
-    Dimensions
+    Dimensions,
+    LogBox
 } from 'react-native';
-import { LogBox } from 'react-native';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { images, fontSizes, colors } from '../constants';
-import { faCircle, faClock, faEllipsisV, faLocationArrow, faMoon, faPlus, faSun } from '@fortawesome/free-solid-svg-icons';
 import { SmallButton, BigTemperature, Temperature, WeatherInfoH, Button, WeatherHourlyV, ExtraInfoItem } from '../components';
-import { getDayOfWeek, getWeatherIcon } from '../utilities';
-import Fontsizes from '../constants/Fontsizes';
-import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import LottieView from 'lottie-react-native';
+
+import { faCircle, faClock, faEllipsisV, faLocationArrow, faMoon, faPlus, faSun } from '@fortawesome/free-solid-svg-icons';
+import { images, colors, fontSizes } from '../constants';
+import { getDayOfWeek, getWeatherIcon, cToF } from '../utilities';
+
 import GeoLocation from "@react-native-community/geolocation";
-import { fetchCurrent, fetchDailyForecast, fetchForecast, fetchGeo } from '../repositories/fetchData';
+import { fetchForecast, fetchGeo } from '../repositories/fetchData';
 import { debounce } from 'lodash';
-import { getData, storeData } from '../utilities/asyncStorage';
 import { getLocationData, storeLocationData } from '../utilities/locationStorage';
+import { getData, storeData } from '../utilities/asyncStorage';
 
 const MainScreen = (props) => {
     const { navigation } = props;
@@ -36,21 +36,19 @@ const MainScreen = (props) => {
 
     const windowWidth = Dimensions.get('window').width;
     const windowHeight = Dimensions.get('window').height;
-    const location = ['Ha Noi', 'Hai Duong', 'Hai Phong'];
-    let i = 0;
 
 
     let [isModalVisible, setModalVisible] = useState(false);
     let [isSetting, setSetting] = useState(false);
     let [isReportSelected, setReportSelected] = useState(false);
     let [isSettingSelected, setSettingSelected] = useState(false);
-    let [cityName, setCityName] = useState(location[i]);
-    let [currentLocation, setCurrentLocation] = useState(location[i]);
+    let [currentLocation, setCurrentLocation] = useState({});
     let [isFetched, setIsFetched] = useState(false);
-    let [weatherData, setWeatherData] = useState({});
     let [refreshing, setRefreshing] = useState(false);
-    let [weatherLocation, setWeatherLocation] = useState([{location: 'Ha Noi'}]);
+    let [weatherLocations, setWeatherLocations] = useState([{location: 'Ha Noi'}, {location: 'London'}]);
     let [weatherDatas, setWeatherDatas] = useState([]);
+    let [celUnit, setCelUnit] = useState(true);
+    let [locationPermission, setLocationPermission] = useState(route.params.permission)
     //Lay dia chi chi tiet tu toa do
     const reverseGeoCode = async ({ lat, long }) => {
         fetchGeo({ lat: lat, long: long })
@@ -64,7 +62,7 @@ const MainScreen = (props) => {
 
     const fetchWeatherDatas = () => {
         const temp = [];
-        const data = weatherLocation.map(async ({location}) => {
+        const data = weatherLocations.map(async ({location}) => {
             fetchForecast({cityName: location})
                 .then((data) => {
                     let t = data?.forecast?.forecastday[0]?.hour;
@@ -89,7 +87,7 @@ const MainScreen = (props) => {
                             },
                             {
                                 name: 'Real feel',
-                                value: Math.round(data?.current?.feelslike_c) + "°"
+                                value: Math.round(data?.current?.feelslike_c)
                             }
                         ],
                         briefForcast: [
@@ -127,164 +125,105 @@ const MainScreen = (props) => {
         setWeatherDatas(temp)
     }
 
-    const fetchWeather = async () => {
-        let city = await getData('city');
-        if (city) {
-            setCityName(city)
-            fetchForecast({ cityName: city })
-                .then((data) => {
-                    let t = data?.forecast?.forecastday[0]?.hour;
-                    setWeatherData({
-                        location: city,
-                        imageBackground: (data?.current?.is_day == 1) ? images.image4 : images.image3,
-                        aqiData: data?.current?.air_quality,
-                        currentData: data?.current,
-                        forecastData: data?.forecast?.forecastday,
-                        extraInfoData: [
-                            {
-                                name: 'Humidity',
-                                value: Math.round(data?.current?.humidity) + "%"
-                            },
-                            {
-                                name: 'Pressure',
-                                value: Math.round(data?.current?.pressure_mb) + "hPa"
-                            },
-                            {
-                                name: 'UV',
-                                value: Math.round(data?.current?.uv)
-                            },
-                            {
-                                name: 'Real feel',
-                                value: Math.round(data?.current?.feelslike_c) + "°"
-                            }
-                        ],
-                        briefForcast: [
-                            {
-                                date: data.forecast.forecastday[0].date,
-                                dayOfWeeks: 'Today',
-                                highestTemp: Math.round(data.forecast.forecastday[0].day.maxtemp_c),
-                                lowestTemp: Math.round(data.forecast.forecastday[0].day.mintemp_c),
-                                weather: data.forecast.forecastday[0].day.condition.text,
-                                icon: data.forecast.forecastday[0].day.condition.icon,
-                            },
-                            {
-                                date: data.forecast.forecastday[1].date,
-                                dayOfWeeks: 'Tomorrow',
-                                highestTemp: Math.round(data.forecast.forecastday[1].day.maxtemp_c),
-                                lowestTemp: Math.round(data.forecast.forecastday[1].day.mintemp_c),
-                                weather: data.forecast.forecastday[1].day.condition.text,
-                                icon: data.forecast.forecastday[1].day.condition.icon,
-                            },
-                            {
-                                date: data.forecast.forecastday[2].date,
-                                dayOfWeeks: getDayOfWeek(data.forecast.forecastday[2].date),
-                                highestTemp: Math.round(data.forecast.forecastday[2].day.maxtemp_c),
-                                lowestTemp: Math.round(data.forecast.forecastday[2].day.mintemp_c),
-                                weather: data.forecast.forecastday[2].day.condition.text,
-                                icon: data.forecast.forecastday[2].day.condition.icon,
-                            },
-                        ],
-                        maxTempInDay: Math.max.apply(Math, t.map(function (weather) {
-                            return weather?.temp_c;
-                        }))
-                    })
-
-                })
-        } else {
-            fetchForecast({ cityName: cityName })
-                .then((data) => {
-                    let t = data?.forecast?.forecastday[0]?.hour;
-                    setWeatherData({
-                        location: cityName,
-                        imageBackground: (data?.current?.is_day == 1) ? images.image4 : images.image3,
-                        aqiData: data?.current?.air_quality,
-                        currentData: data?.current,
-                        forecastData: data?.forecast?.forecastday,
-                        extraInfoData: [
-                            {
-                                name: 'Humidity',
-                                value: Math.round(data?.current?.humidity) + "%"
-                            },
-                            {
-                                name: 'Pressure',
-                                value: Math.round(data?.current?.pressure_mb) + "hPa"
-                            },
-                            {
-                                name: 'UV',
-                                value: Math.round(data?.current?.uv)
-                            },
-                            {
-                                name: 'Real feel',
-                                value: Math.round(data?.current?.feelslike_c) + "°"
-                            }
-                        ],
-                        briefForcast: [
-                            {
-                                date: data.forecast.forecastday[0].date,
-                                dayOfWeeks: 'Today',
-                                highestTemp: Math.round(data.forecast.forecastday[0].day.maxtemp_c),
-                                lowestTemp: Math.round(data.forecast.forecastday[0].day.mintemp_c),
-                                weather: data.forecast.forecastday[0].day.condition.text,
-                                icon: data.forecast.forecastday[0].day.condition.icon,
-                            },
-                            {
-                                date: data.forecast.forecastday[1].date,
-                                dayOfWeeks: 'Tomorrow',
-                                highestTemp: Math.round(data.forecast.forecastday[1].day.maxtemp_c),
-                                lowestTemp: Math.round(data.forecast.forecastday[1].day.mintemp_c),
-                                weather: data.forecast.forecastday[1].day.condition.text,
-                                icon: data.forecast.forecastday[1].day.condition.icon,
-                            },
-                            {
-                                date: data.forecast.forecastday[2].date,
-                                dayOfWeeks: getDayOfWeek(data.forecast.forecastday[2].date),
-                                highestTemp: Math.round(data.forecast.forecastday[2].day.maxtemp_c),
-                                lowestTemp: Math.round(data.forecast.forecastday[2].day.mintemp_c),
-                                weather: data.forecast.forecastday[2].day.condition.text,
-                                icon: data.forecast.forecastday[2].day.condition.icon,
-                            },
-                        ],
-                        maxTempInDay: Math.max.apply(Math, t.map(function (weather) {
-                            return weather?.temp_c;
-                        }))
-                    })
-
-                })
-        }
-
-
-        await delay(2000)
-        setIsFetched(true);
-    }
-
     const handleRefresh = () => {
         setRefreshing(true);
+        fetchLocations();
         fetchWeatherDatas();
         setRefreshing(false);
     }
-    const handleAccessLocation = () => {
-        GeoLocation.getCurrentPosition(position => {
-            if (position.coords) {
-                reverseGeoCode({
-                    lat: position.coords.latitude,
-                    long: position.coords.longitude,
-                });
 
+
+    const handleAccessLocation = () => {
+            GeoLocation.getCurrentPosition(position => {
+                if (position.coords) {
+                    reverseGeoCode({
+                        lat: position.coords.latitude,
+                        long: position.coords.longitude,
+                    });
+    
+                }
+            })
+            if (currentLocation.address?.city) {
+                const temp = [...weatherDatas]
+    
+                if (temp[0]?.location !== currentLocation?.address?.city) {
+                fetchForecast({cityName:  currentLocation?.position?.lat + ", " + currentLocation?.position?.lng})
+                    .then((data) => {
+                        let t = data?.forecast?.forecastday[0]?.hour;
+                        temp.unshift({
+                            location: currentLocation?.address?.city,
+                            imageBackground: (data?.current?.is_day == 1) ? images.image4 : images.image3,
+                            aqiData: data?.current?.air_quality,
+                            currentData: data?.current,
+                            forecastData: data?.forecast?.forecastday,
+                            extraInfoData: [
+                                {
+                                    name: 'Humidity',
+                                    value: Math.round(data?.current?.humidity) + "%"
+                                },
+                                {
+                                    name: 'Pressure',
+                                    value: Math.round(data?.current?.pressure_mb) + "hPa"
+                                },
+                                {
+                                    name: 'UV',
+                                    value: Math.round(data?.current?.uv)
+                                },
+                                {
+                                    name: 'Real feel',
+                                    value: Math.round(data?.current?.feelslike_c)
+                                }
+                            ],
+                            briefForcast: [
+                                {
+                                    date: data.forecast.forecastday[0].date,
+                                    dayOfWeeks: 'Today',
+                                    highestTemp: Math.round(data.forecast.forecastday[0].day.maxtemp_c),
+                                    lowestTemp: Math.round(data.forecast.forecastday[0].day.mintemp_c),
+                                    weather: data.forecast.forecastday[0].day.condition.text,
+                                    icon: data.forecast.forecastday[0].day.condition.icon,
+                                },
+                                {
+                                    date: data.forecast.forecastday[1].date,
+                                    dayOfWeeks: 'Tomorrow',
+                                    highestTemp: Math.round(data.forecast.forecastday[1].day.maxtemp_c),
+                                    lowestTemp: Math.round(data.forecast.forecastday[1].day.mintemp_c),
+                                    weather: data.forecast.forecastday[1].day.condition.text,
+                                    icon: data.forecast.forecastday[1].day.condition.icon,
+                                },
+                                {
+                                    date: data.forecast.forecastday[2].date,
+                                    dayOfWeeks: getDayOfWeek(data.forecast.forecastday[2].date),
+                                    highestTemp: Math.round(data.forecast.forecastday[2].day.maxtemp_c),
+                                    lowestTemp: Math.round(data.forecast.forecastday[2].day.mintemp_c),
+                                    weather: data.forecast.forecastday[2].day.condition.text,
+                                    icon: data.forecast.forecastday[2].day.condition.icon,
+                                },
+                            ],
+                            maxTempInDay: Math.max.apply(Math, t.map(function (weather) {
+                                return weather?.temp_c;
+                            }))
+                        })
+                        
+                    })
+                
+                setRefreshing(true);
+                setWeatherDatas(temp)
+                setRefreshing(false);
+                }
+                else {
+                alert("trung")
             }
-        })
-        if (currentLocation.address?.city) {
-            storeData('city', currentLocation.address?.city);
-            setRefreshing(true);
-            fetchWeatherDatas();
-            setRefreshing(false);
         }
     }
 
     const fetchLocations = async() => {
         let locations = await getLocationData('locations');
         if (locations) {
-            setWeatherLocation(locations)
+            setWeatherLocations(locations)
         }
+        let isPermission = await getData('LocationPermission');
+        setLocationPermission(isPermission == "true")
         await delay(2000)
         setIsFetched(true)
     }
@@ -293,8 +232,7 @@ const MainScreen = (props) => {
         LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
         fetchLocations();
         fetchWeatherDatas();
-
-    }, [route.params.cityName])
+    }, [route.params.cityName, route.params.permission])
 
 
     if (isFetched == false) {
@@ -358,7 +296,11 @@ const MainScreen = (props) => {
                                                     }}>
 
                                                         <TouchableOpacity onPress={() => {
-                                                            return [setSettingSelected(false), setReportSelected(true), navigate('WeatherReportScreen')]
+                                                            setSetting(false);
+                                                            setSettingSelected(false);
+                                                            setReportSelected(true);
+                                                            setModalVisible(false)
+                                                            navigate('WeatherReportScreen');
                                                         }} style={{
                                                             flex: 1, width: '100%',
                                                             backgroundColor: isReportSelected ? colors.backgroundColor : null,
@@ -367,7 +309,11 @@ const MainScreen = (props) => {
                                                         </TouchableOpacity>
 
                                                         <TouchableOpacity onPress={() => {
-                                                            return [setReportSelected(false), setSettingSelected(true), navigate('SettingScreen')]
+                                                            setSetting(false);
+                                                            setReportSelected(false);
+                                                            setSettingSelected(true);
+                                                            setModalVisible(false)
+                                                            navigate('SettingScreen')
                                                         }} style={{
                                                             flex: 1, width: '100%',
                                                             backgroundColor: isSettingSelected ? colors.backgroundColor : null,
@@ -386,7 +332,12 @@ const MainScreen = (props) => {
                                         }}>
                                             <SmallButton content={'Allow Weather to access your location'}
                                                 onPress={() => {
-                                                    handleAccessLocation()
+                                                    if(locationPermission) {
+                                                        handleAccessLocation()
+                                                    } else {
+                                                        navigate('LocationPermissionScreen', {permission: locationPermission});
+                                                    }
+                                                    
                                                 }}
                                             >
                                             </SmallButton>
@@ -428,7 +379,10 @@ const MainScreen = (props) => {
                                                     flex: 1,
                                                     marginTop: 40,
                                                 }}>
-                                                    <BigTemperature currentTemp={Math.round(weatherDataItem?.item?.currentData?.temp_c)}></BigTemperature>
+                                                    <BigTemperature
+                                                        currentTemp={
+                                                            celUnit ? Math.round(weatherDataItem?.item?.currentData?.temp_c) : cToF(weatherDataItem?.item?.currentData?.temp_c)
+                                                    } unit={celUnit}></BigTemperature>
                                                 </View>
 
                                                 <View style={{
@@ -441,7 +395,10 @@ const MainScreen = (props) => {
                                                     }}>
                                                         <Text style={{ color: colors.textColor, fontSize: fontSizes.h4, width: 120 }}>{weatherDataItem?.item?.currentData?.condition?.text}</Text>
                                                         <View style={{ width: 20 }}></View>
-                                                        <Temperature highest={Math.round(weatherDataItem?.item?.forecastData[0]?.day?.maxtemp_c)} lowest={Math.round(weatherDataItem?.item?.forecastData[0]?.day?.mintemp_c)} fontSize={fontSizes.h4}></Temperature>
+                                                        <Temperature highest={Math.round(weatherDataItem?.item?.forecastData[0]?.day?.maxtemp_c)}
+                                                            lowest={Math.round(weatherDataItem?.item?.forecastData[0]?.day?.mintemp_c)}
+                                                            unit={celUnit}
+                                                            fontSize={fontSizes.h4}></Temperature>
 
                                                     </View>
 
@@ -492,14 +449,14 @@ const MainScreen = (props) => {
                                                             }}
                                                             data={weatherDataItem?.item?.briefForcast}
                                                             renderItem={({ item }) => {
-                                                                return <View><WeatherInfoH weatherInfo={item}></WeatherInfoH></View>
+                                                                return <View><WeatherInfoH weatherInfo={item} unit={celUnit}></WeatherInfoH></View>
                                                             }}
                                                             keyExtractor={item => item.date}
                                                         >
                                                         </FlatList>
                                                     </View>
                                                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                                                        <Button onPress={() => navigate('UpcomingWeatherScreen', { data: weatherDataItem?.item?.forecastData, background: weatherDataItem?.item?.imageBackground })} content={'Daily Forecast'} ></Button>
+                                                        <Button onPress={() => navigate('UpcomingWeatherScreen', { data: weatherDataItem?.item?.forecastData, background: weatherDataItem?.item?.imageBackground, unit: celUnit })} content={'Daily Forecast'} ></Button>
                                                     </View>
                                                 </View>
                                             </View>
@@ -523,8 +480,10 @@ const MainScreen = (props) => {
 
                                                 {/*------------Info------------*/}
                                                 <ScrollView nestedScrollEnabled showsHorizontalScrollIndicator={false} horizontal style={{flex: 1, flexDirection: 'row' }}>
-                                                    {weatherDataItem?.item?.forecastData[0]?.hour.map((item) => {
+                                                    {weatherDataItem?.item?.forecastData[0]?.hour.map((item, index) => {
                                                         return (<WeatherHourlyV
+                                                            key = {index}
+                                                            unit = {celUnit}
                                                             max={weatherDataItem?.item?.maxTempInDay}
                                                             temp={Math.round(item.temp_c)}
                                                             hour={item.time}
@@ -561,12 +520,12 @@ const MainScreen = (props) => {
                                                     }}>
                                                         <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
                                                             <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.sunrise}</Text>
-                                                            <Text style={{ ...textStyle, fontSize: Fontsizes.h6, color: colors.fadeTextColor }}>Sunrise</Text>
+                                                            <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>Sunrise</Text>
                                                         </View>
                                                         <View style={{ height: 1, backgroundColor: colors.fadeTextColor, marginHorizontal: 20 }}></View>
                                                         <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
                                                             <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.sunset}</Text>
-                                                            <Text style={{ ...textStyle, fontSize: Fontsizes.h6, color: colors.fadeTextColor }}>Sunset</Text>
+                                                            <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>Sunset</Text>
                                                         </View>
                                                     </View>
 
@@ -579,12 +538,12 @@ const MainScreen = (props) => {
                                                     }}>
                                                         <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
                                                             <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.moonrise}</Text>
-                                                            <Text style={{ ...textStyle, fontSize: Fontsizes.h6, color: colors.fadeTextColor }}>Moonrise</Text>
+                                                            <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>Moonrise</Text>
                                                         </View>
                                                         <View style={{ height: 1, backgroundColor: colors.fadeTextColor, marginHorizontal: 20 }}></View>
                                                         <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
                                                             <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.moonset}</Text>
-                                                            <Text style={{ ...textStyle, fontSize: Fontsizes.h6, color: colors.fadeTextColor }}>Moonset</Text>
+                                                            <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>Moonset</Text>
                                                         </View>
                                                     </View>
                                                 </View>
@@ -601,6 +560,11 @@ const MainScreen = (props) => {
                                                     <FlatList
                                                         data={weatherDataItem?.item?.extraInfoData}
                                                         renderItem={({ item }) => {
+                                                            if (!celUnit) {
+                                                                if (item.name == 'Real feel') {
+                                                                    item.value = cToF(item.value)
+                                                                }
+                                                            }
                                                             return <ExtraInfoItem data={item} height={28} nameStyle={nameTextStyle} valueStyle={valueTextStyle}></ExtraInfoItem>
                                                         }}
                                                         keyExtractor={item => item.name}>
@@ -615,7 +579,8 @@ const MainScreen = (props) => {
                             </View>
                         )
                     }}
-                    keyExtractor={(item, index) => index}></FlatList>
+                    keyExtractor={(item, index) => index}
+                    ></FlatList>
 
 
             </View>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     TouchableOpacity,
@@ -11,32 +11,38 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { colors, fontSizes } from '../constants';
 import GeoLocation from "@react-native-community/geolocation";
+import { getData, storeData } from '../utilities/asyncStorage';
 
 const LocationPermissionScreen = (props) => {
-    const [isEnabled, setIsEnabled] = useState(false);
-    const toggleSwitch = () => {setIsEnabled(previousState => !previousState)};
+    const [isEnabled, setIsEnabled] = useState(props.route.params.permission);
+    const toggleSwitch = () => { setIsEnabled(previousState => !previousState) };
     const { navigation } = props;
     const { navigate } = navigation;
     const requestLocationPermission = () => {
+        if (isEnabled) {
+            GeoLocation.getCurrentPosition(position => {
+                console.log(position);
+            })
 
-    //location
-        GeoLocation.getCurrentPosition(position => {
-            console.log(position);
-        })
+            const granted = PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+            //console.log(position);
+            return granted;
+        }
+        //location
 
-        const granted = PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-        //console.log(position);
-        setIsEnabled(true)
-        return granted;
     };
+
     return (
         <View style={{
             backgroundColor: 'white',
             flex: 1,
             padding: 20
         }}>
-            <TouchableOpacity onPress={() => navigate('MainScreen')} style={{ height: 40 }}>
+            <TouchableOpacity onPress={() => {
+                storeData('LocationPermission', isEnabled + "");
+                navigate('MainScreen')}
+             } style={{ height: 40 }}>
                 <FontAwesomeIcon icon={faArrowLeft} size={26}></FontAwesomeIcon>
             </TouchableOpacity>
             <View style={{ height: 60, justifyContent: 'center', borderBottomWidth: 1, borderColor: colors.fadeBlackTextColor }}>
@@ -55,17 +61,20 @@ const LocationPermissionScreen = (props) => {
                     justifyContent: 'space-between',
                     alignSelf: 'flex-start'
                 }}>
-                    <Text style={{...normalTextStyle, flex: 8}}>Apps that have this permission can get your location info</Text>
-                    <View style={{flex: 2}}>
+                    <Text style={{ ...normalTextStyle, flex: 8 }}>Apps that have this permission can get your location info</Text>
+                    <View style={{ flex: 2 }}>
                         <Switch
                             trackColor={{ false: '#767577', true: '#abdbe3' }}
                             thumbColor={isEnabled ? colors.switchColor : '#f4f3f4'}
-                            onValueChange={requestLocationPermission}
+                            onValueChange={() => {
+                                toggleSwitch();
+                                requestLocationPermission();
+                            }}
                             value={isEnabled}
                         />
                     </View>
-                    
-                    
+
+
 
                 </View>
             </View>
