@@ -5,5 +5,10 @@
     <application
         android:usesCleartextTraffic="true"
         tools:targetApi="28"
-        tools:ignore="GoogleAppIndexingWarning"/>
+        tools:ignore="GoogleAppIndexingWarning">
+    <activity
+    android:name=".MainActivity"
+    android:screenOrientation="portrait">
+    </activity>
+    </application>
 </manifest>

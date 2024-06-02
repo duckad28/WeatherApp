@@ -25,10 +25,10 @@ const LocationScreen = (props) => {
 
     const handleAddLocation = (loc) => {
         if (loc) {
-            let temp = [...locationData, { location: loc?.name }];
-            setLocationData(temp)
-            setSearching(!searching)
+            let temp = [{ location: loc?.name }, ...locationData ];
             storeLocationData('locations', temp)
+            setLocationData([...locationData, {location: loc?.name}])
+            setSearching(!searching)
         }
 
     }
@@ -66,7 +66,7 @@ const LocationScreen = (props) => {
             }}>
                 <View
                     style={{ flex: 1, backgroundColor: 'white', marginHorizontal: 10, marginVertical: 10 }}>
-                    <TouchableOpacity onPress={() => { navigate('MainScreen') }} style={{ height: 40 }}>
+                    <TouchableOpacity onPress={() => { navigate('MainScreen', {cityName: searchText}) }} style={{ height: 40 }}>
                         <FontAwesomeIcon icon={faArrowLeft} size={26}></FontAwesomeIcon>
                     </TouchableOpacity>
                     <View style={{ marginHorizontal: 20, height: 80, justifyContent: 'center' }}>

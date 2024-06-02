@@ -7,20 +7,21 @@ import {
     UpcomingWeatherScreen,
     SettingScreen,
     LocationPermissionScreen,
-    WeatherReportScreen,
     AqiScreen,
     HomeView,
-    WeatherForecast
 } from '../screens';
 import messaging from '@react-native-firebase/messaging';
 import {PermissionsAndroid} from 'react-native';
 import { Linking, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getData, storeData } from '../utilities/asyncStorage';
+import { getLocationData, storeLocationData } from '../utilities/locationStorage';
 
 import { getFcmToken, registerListenerWithFCM } from '../components/pushNoti';
 const NAVIGATION_IDS = ["MainScreen", "UpcomingWeatherScreen", "LocationPermissionScreen", "SettingScreen", "WeatherReportScreen", "AqiScreen", "HomeView"];
 
 const Stack = createNativeStackNavigator();
+
 
 
 const App = () => {
@@ -34,12 +35,11 @@ const App = () => {
       }, []);
     return <NavigationContainer>
         <Stack.Navigator screenOptions={{headerShown: false}}>
-            <Stack.Screen name='MainScreen' component={MainScreen} initialParams={{cityName: 'Ha Noi'}}></Stack.Screen>
+            <Stack.Screen name='MainScreen' component={MainScreen}></Stack.Screen>
             <Stack.Screen name='LocationScreen' component={LocationScreen}></Stack.Screen>
             <Stack.Screen name='UpcomingWeatherScreen' component={UpcomingWeatherScreen}></Stack.Screen>
             <Stack.Screen name='SettingScreen' component={SettingScreen}></Stack.Screen>
             <Stack.Screen name='LocationPermissionScreen' component={LocationPermissionScreen}></Stack.Screen>
-            <Stack.Screen name='WeatherReportScreen' component={WeatherReportScreen}></Stack.Screen>
             <Stack.Screen name='AqiScreen' component={AqiScreen}></Stack.Screen>
         </Stack.Navigator>
     </NavigationContainer>

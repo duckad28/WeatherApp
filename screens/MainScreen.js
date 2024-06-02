@@ -29,6 +29,8 @@ import { debounce } from 'lodash';
 import { getLocationData, storeLocationData } from '../utilities/locationStorage';
 import { getData, storeData } from '../utilities/asyncStorage';
 
+import Rain from 'rainy-background-reactnative';
+
 const MainScreen = (props) => {
     const { navigation } = props;
     const { route } = props;
@@ -37,18 +39,13 @@ const MainScreen = (props) => {
     const windowWidth = Dimensions.get('window').width;
     const windowHeight = Dimensions.get('window').height;
 
-
-    let [isModalVisible, setModalVisible] = useState(false);
-    let [isSetting, setSetting] = useState(false);
-    let [isReportSelected, setReportSelected] = useState(false);
-    let [isSettingSelected, setSettingSelected] = useState(false);
     let [currentLocation, setCurrentLocation] = useState({});
     let [isFetched, setIsFetched] = useState(false);
     let [refreshing, setRefreshing] = useState(false);
     let [weatherLocations, setWeatherLocations] = useState([{location: 'Ha Noi'}, {location: 'London'}]);
     let [weatherDatas, setWeatherDatas] = useState([]);
     let [celUnit, setCelUnit] = useState(true);
-    let [locationPermission, setLocationPermission] = useState(route.params.permission)
+    let [locationPermission, setLocationPermission] = useState(route?.params?.permission)
     //Lay dia chi chi tiet tu toa do
     const reverseGeoCode = async ({ lat, long }) => {
         fetchGeo({ lat: lat, long: long })
@@ -126,9 +123,8 @@ const MainScreen = (props) => {
     }
 
     const handleRefresh = () => {
+        getAsyncData();
         setRefreshing(true);
-        fetchLocations();
-        fetchWeatherDatas();
         setRefreshing(false);
     }
 
@@ -217,23 +213,45 @@ const MainScreen = (props) => {
         }
     }
 
-    const fetchLocations = async() => {
+    const getAsyncData = async() => {
         let locations = await getLocationData('locations');
         if (locations) {
             setWeatherLocations(locations)
         }
-        let isPermission = await getData('LocationPermission');
-        setLocationPermission(isPermission == "true")
+
         await delay(2000)
         setIsFetched(true)
     }
 
+    const getUnit = async() => {
+        let unit = await getData('unit');
+        if (unit) {
+            setCelUnit(unit == 'Celcius');
+        }
+    }
+
+    const getPermisison = async() => {
+        let isPermission = await getData('LocationPermission');
+        setLocationPermission(isPermission == "true")
+    }
+
     useEffect(() => {
         LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
-        fetchLocations();
-        fetchWeatherDatas();
-    }, [route.params.cityName, route.params.permission])
+        getAsyncData();
+    }, [route?.params?.cityName])
 
+
+    useEffect(() => {
+        getUnit()
+    }, [route?.params?.unit])
+
+    useEffect(() => {
+        getPermisison();
+    }, [route?.params?.permission])
+
+    useEffect(() => {
+        fetchWeatherDatas();
+    }, [weatherLocations])
 
     if (isFetched == false) {
         return <HomeView></HomeView>
@@ -256,6 +274,7 @@ const MainScreen = (props) => {
                     renderItem={(weatherDataItem) => {
                         return (
                             <View style={{ width: windowWidth }}>
+                                
                                 {/**------------------------App---------------------------- */}
                                 <ImageBackground source={weatherDataItem?.item?.imageBackground} style={{ flex: 1 }} resizeMode='stretch'>
 
@@ -267,7 +286,7 @@ const MainScreen = (props) => {
                                         <View style={{
                                             flex: 1, flexDirection: 'row', paddingHorizontal: 20, justifyContent: 'space-between', alignItems: 'center'
                                         }}>
-                                            <TouchableOpacity onPress={() => [setSetting(false), navigate('LocationScreen')]}>
+                                            <TouchableOpacity onPress={() => {navigate('LocationScreen')}}>
                                                 <FontAwesomeIcon icon={faPlus} size={fontSizes.iconSize} color={colors.textColor}></FontAwesomeIcon>
                                             </TouchableOpacity>
 
@@ -276,55 +295,9 @@ const MainScreen = (props) => {
                                             }}>{weatherDataItem?.item?.location}</Text>
 
                                             {/**-------------Setting selection------------------------ */}
-                                            <TouchableOpacity onPress={() => [setSetting(true), setReportSelected(false), setSettingSelected(false), setModalVisible(true)]}>
+                                            <TouchableOpacity onPress={() => navigate("SettingScreen")}>
                                                 <FontAwesomeIcon icon={faEllipsisV} size={fontSizes.iconSize} color={colors.textColor}></FontAwesomeIcon>
                                             </TouchableOpacity>
-                                            {/**---------------------Modal------------------------- */}
-                                            <Modal visible={isModalVisible} transparent={true}>
-                                                <TouchableOpacity onPress={() => [setModalVisible(false), setSetting(false)]} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}>
-                                                    <View style={{ height: 20, width: '100%' }}></View>
-                                                    {isSetting && <View style={{
-                                                        margin: 20,
-                                                        width: 160,
-                                                        height: 80,
-                                                        backgroundColor: 'white',
-                                                        justifyContent: 'space-around',
-                                                        alignItems: 'flex-start',
-                                                        alignSelf: 'flex-end',
-                                                        borderRadius: 15,
-                                                        overflow: 'hidden'
-                                                    }}>
-
-                                                        <TouchableOpacity onPress={() => {
-                                                            setSetting(false);
-                                                            setSettingSelected(false);
-                                                            setReportSelected(true);
-                                                            setModalVisible(false)
-                                                            navigate('WeatherReportScreen');
-                                                        }} style={{
-                                                            flex: 1, width: '100%',
-                                                            backgroundColor: isReportSelected ? colors.backgroundColor : null,
-                                                        }}>
-                                                            <Text style={normalTextStyle}>Report</Text>
-                                                        </TouchableOpacity>
-
-                                                        <TouchableOpacity onPress={() => {
-                                                            setSetting(false);
-                                                            setReportSelected(false);
-                                                            setSettingSelected(true);
-                                                            setModalVisible(false)
-                                                            navigate('SettingScreen')
-                                                        }} style={{
-                                                            flex: 1, width: '100%',
-                                                            backgroundColor: isSettingSelected ? colors.backgroundColor : null,
-                                                        }}>
-                                                            <Text style={normalTextStyle}>Setting</Text>
-                                                        </TouchableOpacity>
-
-                                                    </View>}
-                                                </TouchableOpacity>
-                                            </Modal>
-                                            {/**---------------------Modal end------------------------- */}
                                         </View>
 
                                         <View style={{
@@ -375,6 +348,7 @@ const MainScreen = (props) => {
                                             <View style={{
                                                 height: 400
                                             }}>
+                                                {weatherDataItem?.item?.currentData?.condition?.text.toLowerCase().includes("rain") && <Rain fullScreen={false} rainCount={20} fallSpeed="slow" />}
                                                 <View style={{
                                                     flex: 1,
                                                     marginTop: 40,
@@ -393,7 +367,8 @@ const MainScreen = (props) => {
                                                         flexDirection: 'row',
                                                         justifyContent: 'center'
                                                     }}>
-                                                        <Text style={{ color: colors.textColor, fontSize: fontSizes.h4, width: 120 }}>{weatherDataItem?.item?.currentData?.condition?.text}</Text>
+                                                        <Text style={{ color: colors.textColor, fontSize: fontSizes.h4}}>{weatherDataItem?.item?.currentData?.condition?.text}</Text>
+                                                       
                                                         <View style={{ width: 20 }}></View>
                                                         <Temperature highest={Math.round(weatherDataItem?.item?.forecastData[0]?.day?.maxtemp_c)}
                                                             lowest={Math.round(weatherDataItem?.item?.forecastData[0]?.day?.mintemp_c)}
@@ -491,14 +466,6 @@ const MainScreen = (props) => {
 
                                                         </WeatherHourlyV>)
                                                     })}
-                                                    {/* <FlatList
-                                                        showsHorizontalScrollIndicator={false}
-                                                        data={weatherDataItem?.item?.forecastData[0]?.hour}
-                                                        renderItem={({ item }) => {
-                                                            return <WeatherHourlyV max={weatherDataItem?.item?.maxTempInDay} temp={Math.round(item.temp_c)} hour={item.time} icon={item.condition.icon}></WeatherHourlyV>
-                                                        }}
-                                                        keyExtractor={(item, index) => index}>    
-                                                    </FlatList> */}
 
                                                 </ScrollView>
                                             </View>

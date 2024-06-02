@@ -15,7 +15,8 @@ const WeatherInfoHorizontal = (props) => {
     let rainPos = daily_chance_of_rain;
     return (
         <TouchableOpacity onPress={props.onPress}>
-            <View style={{ ...containerStyle, borderBottomColor: colors.borderColor, borderBottomWidth: 1, marginHorizontal: 5 }}>
+            <View style={{ ...containerStyle,
+                borderRadius: 10, marginHorizontal: 5, paddingHorizontal: 5, backgroundColor: colors.buttonColor }}>
                 <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                     <Image source={images[getWeatherIcon(condition?.icon)]} style={{ tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center' }}></Image>
                     <View style={{ width: 10 }}></View>
@@ -53,7 +54,7 @@ const UpcomingWeatherScreen = (props) => {
     return (
 
         <ImageBackground source={imageBackground} style={{ flex: 1 }}>
-            {isModalVisible && <DayInfoScreen isVisible={isModalVisible} setVisible={setModalVisble} data={weatherInfo} unit={unit}></DayInfoScreen>}
+            {isModalVisible && <DayInfoScreen isVisible={true} setVisible={setModalVisble} data={weatherInfo} unit={unit}></DayInfoScreen>}
             <View style={{ flex: 1, padding: 10 }}>
                 <TouchableOpacity onPress={() => navigate('MainScreen')} style={{ height: 40 }}>
                     <FontAwesomeIcon icon={faArrowLeft} size={26} color={colors.textColor}></FontAwesomeIcon>
@@ -129,14 +130,15 @@ const UpcomingWeatherScreen = (props) => {
                             let options = { weekday: 'long' };
                             let dayName = day.toLocaleDateString('en-US', options)
                             return (
-                                <View style={{ borderWidth: 1, marginVertical: 10, paddingHorizontal: 5}}>
-                                    <View style={{ paddingVertical: 10, borderBottomWidth: 1 }}>
+                                <View key = {index} style={{ borderWidth: 1, marginBottom: 40, paddingHorizontal: 5, borderColor: 'white'}}>
+                                    <View style={{ paddingVertical: 10, borderBottomWidth: 1, borderColor: 'white', flexDirection: 'row', justifyContent: 'space-between' }}>
                                             <Text style={{ fontSize: fontSizes.h4, color: colors.textColor, textAlignVertical: 'center' }}>{dayName}</Text>
+                                            <Text style={{ fontSize: fontSizes.h4, color: colors.textColor, textAlignVertical: 'center' }}>{weather?.date}</Text>
                                     </View>
                                     <FlatList key={index} data={weather?.hour}
                                     style={{height: 300}}
                                     nestedScrollEnabled
-                                    showsVerticalScrollIndicator={false}
+                                    showsVerticalScrollIndicator={true}
 
                                     ListFooterComponent={
                                         <View style={{ height: 20 }}></View>

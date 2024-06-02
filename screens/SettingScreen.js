@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     TouchableOpacity,
@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { DataSelections } from '../components';
 import { colors, fontSizes } from '../constants';
+import { getData, storeData } from '../utilities/asyncStorage';
 
 
 const SettingScreen = (props) => {
@@ -35,17 +36,41 @@ const SettingScreen = (props) => {
             isSelected: true
         },
         {
-            name: 'KelVin',
-            isSelected: false
-        },
-        ,
-        {
             name: 'Fahrenheit',
             isSelected: false
         },
     ]);
     const [isEnabled, setIsEnabled] = useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+    const getAsyncData = async () => {
+        let unit = await getData('unit');
+        if (unit) {
+            setTemperatures([{
+                name: 'Celcius',
+                isSelected: unit == 'Celcius'
+            }, {
+                name: 'Fahrenheit',
+                isSelected: unit != 'Celcius'
+            }])
+        }
+    }
+    useEffect(() => {
+        getAsyncData()
+    }, [props?.route?.params])
+    useEffect(() => {
+        languages.map(item => {
+            if (item.isSelected) {
+                storeData('language', item.name)
+            }
+        })
+    }, [languages])
+    useEffect(() => {
+        temperatures.map(item => {
+            if (item.isSelected) {
+                storeData('unit', item.name)
+            }
+        })
+    }, [temperatures])
     return (
         <View style={{
             backgroundColor: 'white',
@@ -60,7 +85,7 @@ const SettingScreen = (props) => {
             setLanguages={setLanguages}
             temperatures={temperatures}
             setTemperatures={setTemperatures}></ModalSetting>
-            <TouchableOpacity onPress={() => navigate('MainScreen')} style={{ height: 40 }}>
+            <TouchableOpacity onPress={() => navigate('MainScreen', {unit: temperatures})} style={{ height: 40 }}>
                 <FontAwesomeIcon icon={faArrowLeft} size={26}></FontAwesomeIcon>
             </TouchableOpacity>
             <View style={{ height: 60, justifyContent: 'center', borderBottomWidth: 1, borderColor: colors.fadeBlackTextColor }}>
@@ -80,7 +105,7 @@ const SettingScreen = (props) => {
                     justifyContent: 'space-between'
                 }}>
                     <Text style={normalTextStyle}>Language</Text>
-                    <TouchableOpacity onPress={() => [setModalVisible(true), setLanguage(true), setTemperature(false)]}>
+                    <TouchableOpacity onPress={() => {setModalVisible(true), setLanguage(true), setTemperature(false)}}>
                     {languages.map(item => {
                             return item.isSelected ? <Text style={normalTextStyle}>{item.name}</Text> : null
                             
@@ -99,10 +124,9 @@ const SettingScreen = (props) => {
                     justifyContent: 'space-between'
                 }}>
                     <Text style={normalTextStyle}>Temperature Units</Text>
-                    <TouchableOpacity onPress={() => [setModalVisible(true), setTemperature(true), setLanguage(false)]}>
+                    <TouchableOpacity onPress={() => {setModalVisible(true), setTemperature(true), setLanguage(false)}}>
                         {temperatures.map(item => {
                             return item.isSelected ? <Text style={normalTextStyle}>{item.name}</Text> : null
-                            
                         })}
                     </TouchableOpacity>
                 </View>
@@ -158,7 +182,7 @@ const ModalSetting = (props) => {
                 <View style={{ height: 200, width: '100%' }}></View>
                 {isLanguageOn && <DataSelections data={props.languages} setData={props.setLanguages} len={2}></DataSelections>}
                 <View style={{ height: 60, width: '100%' }}></View>
-                {isTemperatureOn && <DataSelections data={props.temperatures} setData={props.setTemperatures} len={3}></DataSelections>}
+                {isTemperatureOn && <DataSelections data={props.temperatures} setData={props.setTemperatures} len={2}></DataSelections>}
             </TouchableOpacity>
         </Modal>)
 }
