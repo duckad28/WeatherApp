@@ -25,9 +25,9 @@ const LocationScreen = (props) => {
 
     const handleAddLocation = (loc) => {
         if (loc) {
-            let temp = [{ location: loc?.name }, ...locationData ];
+            let temp = [ ...locationData,{ location: loc?.name } ];
             storeLocationData('locations', temp)
-            setLocationData([...locationData, {location: loc?.name}])
+            setLocationData(temp)
             setSearching(!searching)
         }
 
@@ -101,11 +101,11 @@ const LocationScreen = (props) => {
                         }) */}
                         <FlatList data={locationData}
                             showsVerticalScrollIndicator={false}
-                            renderItem={({ item }) => {
+                            renderItem={({ item, index }) => {
                                 return <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
                                     <LocationItem eachLocation={item} onPress={() => {
                                         storeData('city', item.location);
-                                        navigate('MainScreen', { cityName: item.location })
+                                        navigate('MainScreen', { toIndex: index })
                                         let newLocationData = locationData.map(eachLocationItem => {
                                             return {
                                                 ...eachLocationItem,

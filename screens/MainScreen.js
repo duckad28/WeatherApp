@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View,
     ImageBackground,
@@ -42,10 +42,13 @@ const MainScreen = (props) => {
     let [currentLocation, setCurrentLocation] = useState({});
     let [isFetched, setIsFetched] = useState(false);
     let [refreshing, setRefreshing] = useState(false);
-    let [weatherLocations, setWeatherLocations] = useState([{location: 'Ha Noi'}, {location: 'London'}]);
+    let [weatherLocations, setWeatherLocations] = useState([{location: 'Ha Noi'}]);
     let [weatherDatas, setWeatherDatas] = useState([]);
     let [celUnit, setCelUnit] = useState(true);
     let [locationPermission, setLocationPermission] = useState(route?.params?.permission)
+    let [index, setIndex] = useState(0);
+    const ref = useRef(null);
+
     //Lay dia chi chi tiet tu toa do
     const reverseGeoCode = async ({ lat, long }) => {
         fetchGeo({ lat: lat, long: long })
@@ -123,8 +126,8 @@ const MainScreen = (props) => {
     }
 
     const handleRefresh = () => {
-        getAsyncData();
         setRefreshing(true);
+        fetchWeatherDatas()
         setRefreshing(false);
     }
 
@@ -215,7 +218,7 @@ const MainScreen = (props) => {
 
     const getAsyncData = async() => {
         let locations = await getLocationData('locations');
-        if (locations) {
+        if (locations && locations.length > 0) {
             setWeatherLocations(locations)
         }
 
@@ -238,11 +241,22 @@ const MainScreen = (props) => {
     useEffect(() => {
         LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
         getAsyncData();
-    }, [route?.params?.cityName])
-
+    }, [route?.params?.cityName, route?.params?.toIndex])
 
     useEffect(() => {
-        getUnit()
+        if (ref.current && route?.params?.toIndex && route?.params?.toIndex < weatherLocations.length) {
+            ref.current?.scrollToIndex({
+                index: route?.params?.toIndex,
+                animated: true
+            })
+        }
+    }, [route?.params?.toIndex])
+    
+    useEffect(() => {
+        if (route?.params?.unit) {
+            getUnit()
+        }
+        
     }, [route?.params?.unit])
 
     useEffect(() => {
@@ -252,6 +266,8 @@ const MainScreen = (props) => {
     useEffect(() => {
         fetchWeatherDatas();
     }, [weatherLocations])
+
+    
 
     if (isFetched == false) {
         return <HomeView></HomeView>
@@ -266,11 +282,14 @@ const MainScreen = (props) => {
 
             >
                 <FlatList
+                ref={ref}
                 nestedScrollEnabled
                     data={weatherDatas}
                     pagingEnabled
                     horizontal
                     showsHorizontalScrollIndicator
+                    
+                    initialScrollIndex={index}
                     renderItem={(weatherDataItem) => {
                         return (
                             <View style={{ width: windowWidth }}>

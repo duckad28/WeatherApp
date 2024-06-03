@@ -29,7 +29,7 @@ const App = () => {
         getFcmToken();
       }, []);
     
-      useEffect(() => {
+    useEffect(() => {
         const unsubscribe = registerListenerWithFCM();
         return unsubscribe;
       }, []);
