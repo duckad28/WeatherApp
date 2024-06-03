@@ -37,16 +37,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
                 android:text="@string/time"
-                android:textColor="#ffffff"
+                android:textColor="#000000"
                 android:textSize="15dp" />
-            <ImageButton
-                android:id="@+id/imageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:background="#00121111"
-                android:scaleType="center"
-                app:srcCompat="@android:drawable/star_big_off" />
 
         </LinearLayout>
 
