@@ -24,7 +24,7 @@ public class SharedWidget extends ReactContextBaseJavaModule {
 
     @Override
     public String getName() {
-        return "SharedStorage";
+        return "SharedWidget";
     }
 
     @ReactMethod
