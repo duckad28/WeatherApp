@@ -38,6 +38,7 @@ const UpcomingWeatherScreen = (props) => {
     const { route } = props;
     let weatherData = route.params.data;
     let imageBackground = route.params.background;
+    let day = route.params.day;
     let unit = route.params.unit;
     // let hourlyData = weatherData.reduce((acc, ele) => acc.concat(ele?.hour), [])
     let [weatherInfo, setWeatherInfo] = useState({});
@@ -113,8 +114,8 @@ const UpcomingWeatherScreen = (props) => {
                         <FlatList data={weatherData}
                             horizontal={true}
                             showsHorizontalScrollIndicator={false}
-                            renderItem={({ item }) => {
-                                return <WeatherInfoV unit = {unit} weatherInfo={item} max={max} min={min}></WeatherInfoV>
+                            renderItem={({ item , index}) => {
+                                return <WeatherInfoV unit = {unit} weatherInfo={item} max={max} min={min} today={day == index}></WeatherInfoV>
                             }}
                             keyExtractor={item => item.date}>
 

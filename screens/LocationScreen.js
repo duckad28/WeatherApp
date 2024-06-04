@@ -53,7 +53,7 @@ const LocationScreen = (props) => {
             setLocationData(temp)
         }
     }
-    const handleTextDebounce = useCallback(debounce(handleSearch, 1200), [])
+    const handleTextDebounce = useCallback(debounce(handleSearch, 600), [])
     useEffect(() => {
         getYourLocation()
 

@@ -6,7 +6,7 @@ import {
     TouchableOpacity
 } from 'react-native'
 import { colors, fontSizes } from '../constants';
-
+import { getData, storeData } from '../utilities/asyncStorage';
 
 const DataSelections = (props) => {
 

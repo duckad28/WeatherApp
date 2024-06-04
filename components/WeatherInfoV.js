@@ -8,7 +8,8 @@ import { faTint } from '@fortawesome/free-solid-svg-icons';
 const WeatherInfoV = (props) => {
     let {day, date} = props.weatherInfo;
     let {unit} = props;
-    let dayOfWeeks = getDayOfWeek(date);
+    let {today} = props;
+    let dayOfWeeks = today ? "Today" : getDayOfWeek(date);
     let highestTemp = Math.round(day.maxtemp_c);
     let lowestTemp = Math.round(day.mintemp_c);
     let rainPos = day?.daily_chance_of_rain;
@@ -18,11 +19,11 @@ const WeatherInfoV = (props) => {
     return (
         <View style={{
             flexDirection: 'column',
-            backgroundColor: 'red', borderWidth: 1, borderColor: colors.borderColor,
+            backgroundColor: 'red', borderWidth: 1, borderColor: today ? 'white' : colors.borderColor,
             flex: 1, width: 70, marginHorizontal: 2, paddingTop: 5,
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: (dayOfWeeks == 'Today') ? colors.backgroundColor : 'null',
+            backgroundColor: today ? colors.backgroundColor : 'null',
             borderRadius: 10
         }}>
             <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
@@ -43,7 +44,7 @@ const WeatherInfoV = (props) => {
                     flex: 1,
                     width: 30,
                     borderWidth: 1,
-                    borderColor: colors.borderColor,
+                    borderColor: today ? 'white' : colors.borderColor,
                     borderRadius: 30,
                     marginVertical: 4
                 }}>

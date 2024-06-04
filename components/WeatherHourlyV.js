@@ -7,9 +7,11 @@ import {colors, fontSizes, images} from '../constants';
 const WeatherHourlyV = (props) => {
     let {unit, temp, hour} = props;
     let {max} = props;
-    let dMax = Math.round(max) - temp;
-    hour = toHour(hour);
+    let {now} = props;
+    let dMax = Math.round(max - temp);
+    hour = now ? "now" : toHour(hour);
     let {icon} = props;
+    
     return (
         <View style={{
             flexDirection: 'column',
@@ -18,12 +20,14 @@ const WeatherHourlyV = (props) => {
             marginHorizontal: 2,
             justifyContent: 'space-around',
             alignItems: 'center',
+            borderRadius: 10,
+            backgroundColor: now ? colors.backgroundColor : null,
             }}>
             <View style={{ flexDirection: 'column', height: 100, justifyContent: 'flex-start', }}>
-                <Text style={{ color: colors.textColor, fontSize: 20, marginTop: dMax*5}}>{unit ? temp : cToF(temp)}°</Text>
+                <Text style={{ color: colors.textColor, fontSize: 20, marginTop: dMax*5}}>{unit ? Math.round(temp) : cToF(temp)}°</Text>
             </View>
             <Image source={images[getWeatherIcon(icon)]} style={{ tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center' }}></Image>
-            <Text style={textStyle}>{hour}</Text>
+            <Text style={textStyle}>{now ? "now" : hour}</Text>
         </View>
     )
 }

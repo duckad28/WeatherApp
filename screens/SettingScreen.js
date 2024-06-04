@@ -22,7 +22,7 @@ const SettingScreen = (props) => {
     let [isTemperature, setTemperature] = useState(false);
     let [languages, setLanguages] = useState([
         {
-            name: 'VietNamese',
+            name: 'Tiếng Việt',
             isSelected: false
         },
         {

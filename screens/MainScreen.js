@@ -19,7 +19,7 @@ import { SmallButton, BigTemperature, Temperature, WeatherInfoH, Button, Weather
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import LottieView from 'lottie-react-native';
 
-import { faCircle, faClock, faEllipsisV, faLocationArrow, faMoon, faPlus, faSun } from '@fortawesome/free-solid-svg-icons';
+import { faCircle, faClock, faEllipsisV, faLocationArrow, faMoon, faPlus, faSun, faWifi } from '@fortawesome/free-solid-svg-icons';
 import { images, colors, fontSizes } from '../constants';
 import { getDayOfWeek, getWeatherIcon, cToF } from '../utilities';
 
@@ -41,12 +41,15 @@ const MainScreen = (props) => {
 
     let [currentLocation, setCurrentLocation] = useState({});
     let [isFetched, setIsFetched] = useState(false);
+    let [isEmpty, setIsEmpty] = useState(true);
+
     let [refreshing, setRefreshing] = useState(false);
     let [weatherLocations, setWeatherLocations] = useState([{location: 'Ha Noi'}]);
     let [weatherDatas, setWeatherDatas] = useState([]);
     let [celUnit, setCelUnit] = useState(true);
     let [locationPermission, setLocationPermission] = useState(route?.params?.permission)
     let [index, setIndex] = useState(0);
+    let [preWeather, setPreWeather] = useState([]);
     const ref = useRef(null);
 
     //Lay dia chi chi tiet tu toa do
@@ -63,66 +66,23 @@ const MainScreen = (props) => {
     const fetchWeatherDatas = () => {
         const temp = [];
         const data = weatherLocations.map(async ({location}) => {
+            let now = new Date();
             fetchForecast({cityName: location})
                 .then((data) => {
-                    let t = data?.forecast?.forecastday[0]?.hour;
                     temp.push({
                         location: location,
+                        fetch_time: now,
+                        local_time: data?.location?.localtime,
                         imageBackground: (data?.current?.is_day == 1) ? images.image4 : images.image3,
                         aqiData: data?.current?.air_quality,
                         currentData: data?.current,
                         forecastData: data?.forecast?.forecastday,
-                        extraInfoData: [
-                            {
-                                name: 'Humidity',
-                                value: Math.round(data?.current?.humidity) + "%"
-                            },
-                            {
-                                name: 'Pressure',
-                                value: Math.round(data?.current?.pressure_mb) + "hPa"
-                            },
-                            {
-                                name: 'UV',
-                                value: Math.round(data?.current?.uv)
-                            },
-                            {
-                                name: 'Real feel',
-                                value: Math.round(data?.current?.feelslike_c)
-                            }
-                        ],
-                        briefForcast: [
-                            {
-                                date: data.forecast.forecastday[0].date,
-                                dayOfWeeks: 'Today',
-                                highestTemp: Math.round(data.forecast.forecastday[0].day.maxtemp_c),
-                                lowestTemp: Math.round(data.forecast.forecastday[0].day.mintemp_c),
-                                weather: data.forecast.forecastday[0].day.condition.text,
-                                icon: data.forecast.forecastday[0].day.condition.icon,
-                            },
-                            {
-                                date: data.forecast.forecastday[1].date,
-                                dayOfWeeks: 'Tomorrow',
-                                highestTemp: Math.round(data.forecast.forecastday[1].day.maxtemp_c),
-                                lowestTemp: Math.round(data.forecast.forecastday[1].day.mintemp_c),
-                                weather: data.forecast.forecastday[1].day.condition.text,
-                                icon: data.forecast.forecastday[1].day.condition.icon,
-                            },
-                            {
-                                date: data.forecast.forecastday[2].date,
-                                dayOfWeeks: getDayOfWeek(data.forecast.forecastday[2].date),
-                                highestTemp: Math.round(data.forecast.forecastday[2].day.maxtemp_c),
-                                lowestTemp: Math.round(data.forecast.forecastday[2].day.mintemp_c),
-                                weather: data.forecast.forecastday[2].day.condition.text,
-                                icon: data.forecast.forecastday[2].day.condition.icon,
-                            },
-                        ],
-                        maxTempInDay: Math.max.apply(Math, t.map(function (weather) {
-                            return weather?.temp_c;
-                        }))
                     })
                 })
          });
-        setWeatherDatas(temp)
+        setWeatherDatas(temp);
+        storeData('city', temp[0]?.location);
+        
     }
 
     const handleRefresh = () => {
@@ -130,6 +90,7 @@ const MainScreen = (props) => {
         fetchWeatherDatas()
         setRefreshing(false);
     }
+
 
 
     const handleAccessLocation = () => {
@@ -146,62 +107,17 @@ const MainScreen = (props) => {
                 const temp = [...weatherDatas]
     
                 if (temp[0]?.location !== currentLocation?.address?.city) {
+                    let now = new Date();
                 fetchForecast({cityName:  currentLocation?.position?.lat + ", " + currentLocation?.position?.lng})
                     .then((data) => {
-                        let t = data?.forecast?.forecastday[0]?.hour;
                         temp.unshift({
                             location: currentLocation?.address?.city,
+                            fetch_time: now,
+                            local_time: data?.location?.localtime,
                             imageBackground: (data?.current?.is_day == 1) ? images.image4 : images.image3,
                             aqiData: data?.current?.air_quality,
                             currentData: data?.current,
                             forecastData: data?.forecast?.forecastday,
-                            extraInfoData: [
-                                {
-                                    name: 'Humidity',
-                                    value: Math.round(data?.current?.humidity) + "%"
-                                },
-                                {
-                                    name: 'Pressure',
-                                    value: Math.round(data?.current?.pressure_mb) + "hPa"
-                                },
-                                {
-                                    name: 'UV',
-                                    value: Math.round(data?.current?.uv)
-                                },
-                                {
-                                    name: 'Real feel',
-                                    value: Math.round(data?.current?.feelslike_c)
-                                }
-                            ],
-                            briefForcast: [
-                                {
-                                    date: data.forecast.forecastday[0].date,
-                                    dayOfWeeks: 'Today',
-                                    highestTemp: Math.round(data.forecast.forecastday[0].day.maxtemp_c),
-                                    lowestTemp: Math.round(data.forecast.forecastday[0].day.mintemp_c),
-                                    weather: data.forecast.forecastday[0].day.condition.text,
-                                    icon: data.forecast.forecastday[0].day.condition.icon,
-                                },
-                                {
-                                    date: data.forecast.forecastday[1].date,
-                                    dayOfWeeks: 'Tomorrow',
-                                    highestTemp: Math.round(data.forecast.forecastday[1].day.maxtemp_c),
-                                    lowestTemp: Math.round(data.forecast.forecastday[1].day.mintemp_c),
-                                    weather: data.forecast.forecastday[1].day.condition.text,
-                                    icon: data.forecast.forecastday[1].day.condition.icon,
-                                },
-                                {
-                                    date: data.forecast.forecastday[2].date,
-                                    dayOfWeeks: getDayOfWeek(data.forecast.forecastday[2].date),
-                                    highestTemp: Math.round(data.forecast.forecastday[2].day.maxtemp_c),
-                                    lowestTemp: Math.round(data.forecast.forecastday[2].day.mintemp_c),
-                                    weather: data.forecast.forecastday[2].day.condition.text,
-                                    icon: data.forecast.forecastday[2].day.condition.icon,
-                                },
-                            ],
-                            maxTempInDay: Math.max.apply(Math, t.map(function (weather) {
-                                return weather?.temp_c;
-                            }))
                         })
                         
                     })
@@ -221,9 +137,15 @@ const MainScreen = (props) => {
         if (locations && locations.length > 0) {
             setWeatherLocations(locations)
         }
-
         await delay(2000)
         setIsFetched(true)
+    }
+
+    const getPreWeather = async() => {
+        let weathers = await getLocationData('weathers');
+        if (weathers && weathers.length > 0) {
+            setPreWeather(weathers);
+        }
     }
 
     const getUnit = async() => {
@@ -237,6 +159,11 @@ const MainScreen = (props) => {
         let isPermission = await getData('LocationPermission');
         setLocationPermission(isPermission == "true")
     }
+
+
+    useEffect(() => {
+        getPreWeather();
+    }, [])
 
     useEffect(() => {
         LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
@@ -266,15 +193,32 @@ const MainScreen = (props) => {
     useEffect(() => {
         fetchWeatherDatas();
     }, [weatherLocations])
-
     
 
     if (isFetched == false) {
         return <HomeView></HomeView>
     }
 
+    // if (isFetched == true && weatherDatas.length == 0) {
+    //     return <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+    //         <FontAwesomeIcon icon={faWifi} size={50} color={'#7a7a7a'}></FontAwesomeIcon>
+    //         <Text>Check your internet</Text>
+    //         <TouchableOpacity style={{width: 80, height: 40, backgroundColor: colors.buttonColor, borderRadius: 10, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
+    //             setIsFetched(false);
+    //             getAsyncData()
+    //         }}>
+    //             <Text>Try again</Text>
+    //         </TouchableOpacity>
+    //     </View>
+    // }
+
 
     if (isFetched) {
+        if (weatherDatas.length == weatherLocations.length) {
+            storeLocationData('weathers', weatherDatas);
+        } else if (weatherDatas.length == 0) {
+            setWeatherDatas(preWeather);
+        }
         return (
             <View style={{
                 flex: 1, backgroundColor: 'white'
@@ -282,20 +226,154 @@ const MainScreen = (props) => {
 
             >
                 <FlatList
-                ref={ref}
-                nestedScrollEnabled
+                    ref={ref}
+                    nestedScrollEnabled
                     data={weatherDatas}
                     pagingEnabled
                     horizontal
                     showsHorizontalScrollIndicator
-                    
                     initialScrollIndex={index}
                     renderItem={(weatherDataItem) => {
+                        let fetch_time = new Date(weatherDataItem?.item?.fetch_time);
+                        let fetch_day = fetch_time.getDay();
+                        let fetch_hour = fetch_time.getHours();
+                        let local_time = new Date(weatherDataItem?.item?.local_time);
+                        let local_day = local_time.getDay();
+                        let local_hour = local_time.getHours();
+                        let now = new Date();
+                        let current_day = now.getDay();
+                        let current_hour = now.getHours();
+                        let i_day = (current_day - fetch_day);
+                        let i_hour = (current_hour - fetch_hour);
+                        if (i_day < 0) {
+                            i_day = i_day + 7;
+                        }
+                        
+                        if (i_day > 6) {
+                            i_day = 6;
+                        }
+                        let current_weather = weatherDataItem?.item?.currentData;
+
+                        if (i_day == 0) {
+                            if (i_hour != 0) {
+                                i_hour = local_hour + current_hour - fetch_hour;
+                                if (i_hour > 23) {
+                                    i_hour = i_hour - 23;
+                                    i_day = 1;
+                                }
+                                current_weather = weatherDataItem?.item?.forecastData[i_day]?.hour[i_hour];
+                            } else {
+                                i_hour = local_hour;
+                            }
+                        }
+                        
+                        
+                        if (i_day != 0) {
+                            i_hour = local_hour + current_hour + 23 - fetch_hour;
+                            if (i_hour > 23) {
+                                i_hour = i_hour - 23;
+                                i_day = (i_day + 1);
+                                if (i_day > 6) {
+                                    i_day = 6;
+                                }
+                            }
+                            current_weather = weatherDataItem?.item?.forecastData[i_day]?.hour[i_hour];
+                        }
+                        let current_temperature = current_weather?.temp_c;
+                        let max_temperature = Math.round(weatherDataItem?.item?.forecastData[i_day]?.day?.maxtemp_c);
+                        let min_temperature = Math.round(weatherDataItem?.item?.forecastData[i_day]?.day?.mintemp_c);
+                        let current_weather_condition = current_weather?.condition?.text;
+                        let current_icon = images[getWeatherIcon(current_weather?.condition?.icon)];
+                        let image_background = weatherDataItem?.item?.imageBackground;
+                        
+                        let current_extrainfo = [
+                            {
+                                name: 'Humidity',
+                                value: Math.round(current_weather?.humidity) + "%"
+                            },
+                            {
+                                name: 'Pressure',
+                                value: Math.round(current_weather?.pressure_mb) + "hPa"
+                            },
+                            {
+                                name: 'UV',
+                                value: Math.round(current_weather?.uv)
+                            },
+                            {
+                                name: 'Real feel',
+                                value: Math.round(current_weather?.feelslike_c)
+                            }
+                        ];
+                        
+                        let brief_forcast = [
+                            {
+                                date: weatherDataItem?.item?.forecastData[i_day % 7].date,
+                                dayOfWeeks: 'Today',
+                                highestTemp: Math.round(weatherDataItem?.item?.forecastData[i_day % 7].day.maxtemp_c),
+                                lowestTemp: Math.round(weatherDataItem?.item?.forecastData[i_day % 7].day.mintemp_c),
+                                weather: weatherDataItem?.item?.forecastData[i_day % 7].day.condition.text,
+                                icon: weatherDataItem?.item?.forecastData[i_day % 7].day.condition.icon,
+                            },
+                            {
+                                date: weatherDataItem?.item?.forecastData[(i_day + 1) % 7].date,
+                                dayOfWeeks: 'Tomorrow',
+                                highestTemp: Math.round(weatherDataItem?.item?.forecastData[(i_day + 1) % 7].day.maxtemp_c),
+                                lowestTemp: Math.round(weatherDataItem?.item?.forecastData[(i_day + 1) % 7].day.mintemp_c),
+                                weather: weatherDataItem?.item?.forecastData[(i_day + 1) % 7].day.condition.text,
+                                icon: weatherDataItem?.item?.forecastData[(i_day + 1) % 7].day.condition.icon,
+                            },
+                            {
+                                date: weatherDataItem?.item?.forecastData[(i_day + 2) % 7].date,
+                                dayOfWeeks: getDayOfWeek(weatherDataItem?.item?.forecastData[(i_day + 2) % 7].date),
+                                highestTemp: Math.round(weatherDataItem?.item?.forecastData[(i_day + 2) % 7].day.maxtemp_c),
+                                lowestTemp: Math.round(weatherDataItem?.item?.forecastData[(i_day + 2) % 7].day.mintemp_c),
+                                weather: weatherDataItem?.item?.forecastData[(i_day + 2) % 7].day.condition.text,
+                                icon: weatherDataItem?.item?.forecastData[(i_day + 2) % 7].day.condition.icon,
+                            },
+                        ]
+
+                        if (i_day > 4) {
+                            brief_forcast = [
+                                {
+                                    date: weatherDataItem?.item?.forecastData[4].date,
+                                    dayOfWeeks: getDayOfWeek(weatherDataItem?.item?.forecastData[4].date),
+                                    highestTemp: Math.round(weatherDataItem?.item?.forecastData[4].day.maxtemp_c),
+                                    lowestTemp: Math.round(weatherDataItem?.item?.forecastData[4].day.mintemp_c),
+                                    weather: weatherDataItem?.item?.forecastData[4].day.condition.text,
+                                    icon: weatherDataItem?.item?.forecastData[4].day.condition.icon,
+                                },
+                                {
+                                    date: weatherDataItem?.item?.forecastData[5].date,
+                                    dayOfWeeks: getDayOfWeek(weatherDataItem?.item?.forecastData[5].date),
+                                    highestTemp: Math.round(weatherDataItem?.item?.forecastData[5].day.maxtemp_c),
+                                    lowestTemp: Math.round(weatherDataItem?.item?.forecastData[5].day.mintemp_c),
+                                    weather: weatherDataItem?.item?.forecastData[5].day.condition.text,
+                                    icon: weatherDataItem?.item?.forecastData[5].day.condition.icon,
+                                },
+                                {
+                                    date: weatherDataItem?.item?.forecastData[6].date,
+                                    dayOfWeeks: getDayOfWeek(weatherDataItem?.item?.forecastData[6].date),
+                                    highestTemp: Math.round(weatherDataItem?.item?.forecastData[6].day.maxtemp_c),
+                                    lowestTemp: Math.round(weatherDataItem?.item?.forecastData[6].day.mintemp_c),
+                                    weather: weatherDataItem?.item?.forecastData[6].day.condition.text,
+                                    icon: weatherDataItem?.item?.forecastData[6].day.condition.icon,
+                                },
+                            ]
+                        }
+
+                        if (current_hour != fetch_hour) {
+                            image_background = (weatherDataItem?.item?.forecastData[i_day]?.hour[i_hour]?.is_day == 1) ? images.image4 : images.image3;
+                        }
+
+                        let is_raining = current_weather?.condition?.text.toLowerCase().includes("rain");
                         return (
                             <View style={{ width: windowWidth }}>
                                 
                                 {/**------------------------App---------------------------- */}
-                                <ImageBackground source={weatherDataItem?.item?.imageBackground} style={{ flex: 1 }} resizeMode='stretch'>
+                                <ImageBackground source={image_background}
+                                    style={{ flex: 1 }}
+                                    resizeMode='stretch'
+                                    >
 
                                     {/*---------Header---------*/}
                                     <View style={{
@@ -303,19 +381,29 @@ const MainScreen = (props) => {
                                     }}>
 
                                         <View style={{
-                                            flex: 1, flexDirection: 'row', paddingHorizontal: 20, justifyContent: 'space-between', alignItems: 'center'
+                                            ...commonStyle1,
+                                            paddingHorizontal: 20,
                                         }}>
                                             <TouchableOpacity onPress={() => {navigate('LocationScreen')}}>
-                                                <FontAwesomeIcon icon={faPlus} size={fontSizes.iconSize} color={colors.textColor}></FontAwesomeIcon>
+                                                <FontAwesomeIcon
+                                                    icon={faPlus}
+                                                    size={fontSizes.iconSize}
+                                                    color={colors.textColor}
+                                                ></FontAwesomeIcon>
                                             </TouchableOpacity>
 
                                             <Text style={{
-                                                fontSize: fontSizes.h4, color: colors.textColor
+                                                fontSize: fontSizes.h4,
+                                                color: colors.textColor
                                             }}>{weatherDataItem?.item?.location}</Text>
 
                                             {/**-------------Setting selection------------------------ */}
                                             <TouchableOpacity onPress={() => navigate("SettingScreen")}>
-                                                <FontAwesomeIcon icon={faEllipsisV} size={fontSizes.iconSize} color={colors.textColor}></FontAwesomeIcon>
+                                                <FontAwesomeIcon
+                                                    icon={faEllipsisV}
+                                                    size={fontSizes.iconSize}
+                                                    color={colors.textColor}
+                                                ></FontAwesomeIcon>
                                             </TouchableOpacity>
                                         </View>
 
@@ -329,15 +417,11 @@ const MainScreen = (props) => {
                                                     } else {
                                                         navigate('LocationPermissionScreen', {permission: locationPermission});
                                                     }
-                                                    
                                                 }}
-                                            >
-                                            </SmallButton>
+                                            ></SmallButton>
 
                                             <View style={{
-                                                flex: 1,
-                                                flexDirection: 'row',
-                                                alignItems: 'center',
+                                                ...commonStyle1,
                                                 justifyContent: 'center',
                                                 marginTop: 10
                                             }}>
@@ -355,7 +439,10 @@ const MainScreen = (props) => {
                                     <View style={{
                                         flex: 10
                                     }}>
-                                        <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}
+                                        <ScrollView
+                                            nestedScrollEnabled
+                                            showsVerticalScrollIndicator={false}
+                                            contentContainerStyle={{ flexGrow: 1 }}
                                             style={{
                                                 flex: 10
                                             }}
@@ -367,30 +454,37 @@ const MainScreen = (props) => {
                                             <View style={{
                                                 height: 400
                                             }}>
-                                                {weatherDataItem?.item?.currentData?.condition?.text.toLowerCase().includes("rain") && <Rain fullScreen={false} rainCount={20} fallSpeed="slow" />}
+                                                {is_raining && <Rain fullScreen={false} rainCount={20} fallSpeed="slow" />}
                                                 <View style={{
                                                     flex: 1,
                                                     marginTop: 40,
                                                 }}>
                                                     <BigTemperature
-                                                        currentTemp={
-                                                            celUnit ? Math.round(weatherDataItem?.item?.currentData?.temp_c) : cToF(weatherDataItem?.item?.currentData?.temp_c)
-                                                    } unit={celUnit}></BigTemperature>
+                                                        currentTemp={current_temperature}
+                                                        unit={celUnit}
+                                                    ></BigTemperature>
                                                 </View>
 
                                                 <View style={{
                                                     flex: 1,
                                                 }}>
                                                     <View style={{
-                                                        flex: 1,
-                                                        flexDirection: 'row',
+                                                        ...commonStyle1,
                                                         justifyContent: 'center'
                                                     }}>
-                                                        <Text style={{ color: colors.textColor, fontSize: fontSizes.h4}}>{weatherDataItem?.item?.currentData?.condition?.text}</Text>
+                                                        <Text 
+                                                            style={{
+                                                                color: colors.textColor,
+                                                                fontSize: fontSizes.h4
+                                                            }}
+                                                        >
+                                                            {current_weather_condition}
+                                                        </Text>
                                                        
                                                         <View style={{ width: 20 }}></View>
-                                                        <Temperature highest={Math.round(weatherDataItem?.item?.forecastData[0]?.day?.maxtemp_c)}
-                                                            lowest={Math.round(weatherDataItem?.item?.forecastData[0]?.day?.mintemp_c)}
+                                                        <Temperature
+                                                            highest={max_temperature}
+                                                            lowest={min_temperature}
                                                             unit={celUnit}
                                                             fontSize={fontSizes.h4}></Temperature>
 
@@ -401,23 +495,20 @@ const MainScreen = (props) => {
                                                         justifyContent: 'center',
                                                     }}>
                                                         <View style={{
-                                                            flex: 1,
-                                                            marginHorizontal: 30,
+                                                            ...commonStyle1,
                                                             justifyContent: 'space-evenly',
-                                                            alignItems: 'center',
-                                                            flexDirection: 'row'
+                                                            marginHorizontal: 30,
+                                                            
                                                         }}>
                                                             <SmallButton content={'AQI'} onPress={() => navigate('AqiScreen', { data: weatherDataItem?.item?.aqiData })}></SmallButton>
                                                             <View style={{
+                                                                ...commonStyle2,
                                                                 paddingHorizontal: 10,
                                                                 paddingVertical: 2,
                                                                 borderRadius: 15,
                                                                 backgroundColor: colors.buttonColor,
-                                                                flexDirection: 'row',
-                                                                justifyContent: 'center',
-                                                                alignItems: 'center'
                                                             }}>
-                                                                <Image source={images[getWeatherIcon(weatherDataItem?.item?.currentData?.condition?.icon)]} style={{ tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center' }}></Image>
+                                                                <Image source={current_icon} style={{ tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center' }}></Image>
                                                             </View>
                                                         </View>
                                                         <View style={{ flex: 1 }}></View>
@@ -429,7 +520,13 @@ const MainScreen = (props) => {
                                             <View style={{
                                                 height: 300
                                             }}>
-                                                <View style={{ flex: 1, marginHorizontal: 10, marginVertical: 20, backgroundColor: colors.backgroundColor, borderRadius: 20 }}>
+                                                <View style={{
+                                                    flex: 1,
+                                                    marginHorizontal: 10,
+                                                    marginVertical: 20,
+                                                    backgroundColor: colors.backgroundColor,
+                                                    borderRadius: 20 }}
+                                                >
                                                     <View style={{
                                                         flex: 2,
                                                         marginHorizontal: 15,
@@ -441,7 +538,7 @@ const MainScreen = (props) => {
                                                                 flexDirection: 'column',
                                                                 flexGrow: 0,
                                                             }}
-                                                            data={weatherDataItem?.item?.briefForcast}
+                                                            data={brief_forcast}
                                                             renderItem={({ item }) => {
                                                                 return <View><WeatherInfoH weatherInfo={item} unit={celUnit}></WeatherInfoH></View>
                                                             }}
@@ -450,14 +547,18 @@ const MainScreen = (props) => {
                                                         </FlatList>
                                                     </View>
                                                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                                                        <Button onPress={() => navigate('UpcomingWeatherScreen', { data: weatherDataItem?.item?.forecastData, background: weatherDataItem?.item?.imageBackground, unit: celUnit })} content={'Daily Forecast'} ></Button>
+                                                        <Button onPress={() => navigate('UpcomingWeatherScreen', { data: weatherDataItem?.item?.forecastData, background: image_background, unit: celUnit, day: i_day })} content={'Daily Forecast'} ></Button>
                                                     </View>
                                                 </View>
                                             </View>
 
                                             {/*------------HourLyForecast------------*/}
                                             <View style={{
-                                                backgroundColor: colors.backgroundColor, height: 250, margin: 10, marginTop: 0, borderRadius: 15,
+                                                backgroundColor: colors.backgroundColor,
+                                                height: 250,
+                                                margin: 10,
+                                                marginTop: 0,
+                                                borderRadius: 15,
                                                 
                                             }}>
                                                 {/*------------Header------------*/}
@@ -474,15 +575,16 @@ const MainScreen = (props) => {
 
                                                 {/*------------Info------------*/}
                                                 <ScrollView nestedScrollEnabled showsHorizontalScrollIndicator={false} horizontal style={{flex: 1, flexDirection: 'row' }}>
-                                                    {weatherDataItem?.item?.forecastData[0]?.hour.map((item, index) => {
+                                                    {weatherDataItem?.item?.forecastData[i_day]?.hour.map((item, index) => {
                                                         return (<WeatherHourlyV
                                                             key = {index}
                                                             unit = {celUnit}
-                                                            max={weatherDataItem?.item?.maxTempInDay}
-                                                            temp={Math.round(item.temp_c)}
+                                                            max={max_temperature}
+                                                            temp={item.temp_c}
                                                             hour={item.time}
-                                                            icon={item.condition.icon}>
-
+                                                            icon={item.condition.icon}
+                                                            now={i_hour == index}
+                                                        >
                                                         </WeatherHourlyV>)
                                                     })}
 
@@ -491,7 +593,9 @@ const MainScreen = (props) => {
 
                                             {/*------------Extra Information------------*/}
                                             <View style={{
-                                                height: 200, marginHorizontal: 5, flexDirection: 'row'
+                                                height: 200,
+                                                marginHorizontal: 5,
+                                                flexDirection: 'row'
                                             }}>
                                                 {/*------------RiseSetTime------------*/}
                                                 <View style={{
@@ -544,14 +648,14 @@ const MainScreen = (props) => {
                                                     margin: 5
                                                 }}>
                                                     <FlatList
-                                                        data={weatherDataItem?.item?.extraInfoData}
+                                                        data={current_extrainfo}
                                                         renderItem={({ item }) => {
                                                             if (!celUnit) {
                                                                 if (item.name == 'Real feel') {
                                                                     item.value = cToF(item.value)
                                                                 }
                                                             }
-                                                            return <ExtraInfoItem data={item} height={28} nameStyle={nameTextStyle} valueStyle={valueTextStyle}></ExtraInfoItem>
+                                                            return <ExtraInfoItem data={item} height={28} nameStyle={textStyle} valueStyle={valueTextStyle}></ExtraInfoItem>
                                                         }}
                                                         keyExtractor={item => item.name}>
 
@@ -607,17 +711,20 @@ const normalTextStyle = StyleSheet.create({
 const textStyle = StyleSheet.create({
     color: colors.textColor, fontSize: fontSizes.h5, textAlignVertical: 'center',
 })
-const nameTextStyle = StyleSheet.create({
-    color: colors.textColor, fontSize: fontSizes.h5, textAlignVertical: 'center'
-})
 const valueTextStyle = StyleSheet.create({
     color: colors.fadeTextColor, fontSize: fontSizes.h6, textAlignVertical: 'center'
 })
 
+const commonStyle2 = StyleSheet.create({
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center'
+})
 
-const commonStyle = StyleSheet.create({
+const commonStyle1 = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
+    alignItems: 'center',
     flexDirection: 'row',
 })
 export default MainScreen;
