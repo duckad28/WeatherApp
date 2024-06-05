@@ -20,7 +20,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import LottieView from 'lottie-react-native';
 
 import { faCircle, faClock, faEllipsisV, faLocationArrow, faMoon, faPlus, faSun, faWifi } from '@fortawesome/free-solid-svg-icons';
-import { images, colors, fontSizes } from '../constants';
+import { images, colors, fontSizes, viText } from '../constants';
 import { getDayOfWeek, getWeatherIcon, cToF } from '../utilities';
 
 import GeoLocation from "@react-native-community/geolocation";
@@ -516,7 +516,7 @@ const MainScreen = (props) => {
                                                                 fontSize: fontSizes.h4
                                                             }}
                                                         >
-                                                            {current_weather_condition}
+                                                            {isEng ? current_weather_condition : viText[current_weather_condition.trim().toLowerCase()]}
                                                         </Text>
 
                                                         <View style={{ width: 20 }}></View>
@@ -579,7 +579,7 @@ const MainScreen = (props) => {
                                                             }}
                                                             data={brief_forcast}
                                                             renderItem={({ item }) => {
-                                                                return <View><WeatherInfoH weatherInfo={item} unit={celUnit}></WeatherInfoH></View>
+                                                                return <View><WeatherInfoH weatherInfo={item} unit={celUnit} lan={isEng}></WeatherInfoH></View>
                                                             }}
                                                             keyExtractor={item => item.date}
                                                         >

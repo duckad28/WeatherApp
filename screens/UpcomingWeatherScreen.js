@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Text, View, FlatList, TouchableOpacity, ImageBackground, StyleSheet, Image, ScrollView } from 'react-native';
-import { colors, fontSizes, images, styles } from '../constants';
+import { colors, fontSizes, images, styles, viText } from '../constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { WeatherInfoV, Temperature } from '../components';
@@ -22,7 +22,7 @@ const dayOfWeeksVn = {
 
 const WeatherInfoHorizontal = (props) => {
     let { temp_c, time, condition, daily_chance_of_rain } = props.weatherInfo;
-    let {unit} = props;
+    let {unit, lan} = props;
     let timeOfDay = getTimeOfDay(time);
     let dayOfWeeks = getDayOfWeek(time);
     let rainPos = daily_chance_of_rain;
@@ -43,7 +43,7 @@ const WeatherInfoHorizontal = (props) => {
                     <View style={{ width: 10 }}></View>
                     <Text style={{ ...textStyle, width: 50 }}>{timeOfDay}</Text>
                     <View style={{ width: 10 }}></View>
-                    <Text style={textStyle}>{condition?.text}</Text>
+                    <Text style={textStyle}>{lan ? condition?.text : viText[condition?.text.trim().toLowerCase()]}</Text>
                 </View>
                 <Text 
                     style={{
@@ -207,6 +207,7 @@ const UpcomingWeatherScreen = (props) => {
                                                 }} 
                                                 weatherInfo={item}
                                                 unit = {unit} astro={weather.astro}
+                                                lan={route?.params?.lan}
                                             ></WeatherInfoHorizontal>
                                         )
                                     }}
