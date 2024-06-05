@@ -4,12 +4,17 @@ import android.annotation.SuppressLint;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
+import android.widget.ImageView;
 import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.app.PendingIntent;
 import android.content.Intent;
 
+import com.bumptech.glide.Glide;
 import com.mobileweatherapp.api.ApiService;
 import com.mobileweatherapp.model.Currency;
 
@@ -29,8 +34,9 @@ public class WeatherWidget extends AppWidgetProvider {
 
     private static String tvTempC;
     private static String tvHumidity;
-
     private static String tvCondition;
+    private static ImageView imgFromApi;
+
 
     @SuppressLint("StringFormatInvalid")
     static void updateAppWidget(Context context,
@@ -40,6 +46,11 @@ public class WeatherWidget extends AppWidgetProvider {
         String timeString =
                 DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date());
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.weather_widget);
+
+//        imgFromApi.setDrawingCacheEnabled(true);
+//        imgFromApi.buildDrawingCache();
+//        Bitmap bitmap = imgFromApi.getDrawingCache();
+        views.setImageViewResource(R.id.imageView, R.drawable.img);
 //Thay doi textview dia diem//
         //views.setTextViewText(R.id.place,);
 //Thay doi textview thoi gian//
@@ -50,7 +61,7 @@ public class WeatherWidget extends AppWidgetProvider {
 //Thay doi textview trang thai, nhiet do//
         views.setTextViewText(R.id.conditontext,
                 context.getResources().getString(
-                        R.string.text_condition, tvCondition) + ": ");
+                        R.string.text_condition, tvCondition));
         views.setTextViewText(R.id.temperature,
                 context.getResources().getString(
                         R.string.text_temperature, tvTempC) + "°C");
@@ -65,7 +76,14 @@ public class WeatherWidget extends AppWidgetProvider {
         PendingIntent pendingUpdate = PendingIntent.getBroadcast(
                 context, appWidgetId, intentUpdate,
                 PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent intentOpenApp = new Intent(context, MainActivity.class);
+        PendingIntent pendingOpenApp = PendingIntent.getActivity(context, 0, intentOpenApp, PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.time_update, pendingUpdate);
+        views.setOnClickPendingIntent(R.id.imageView3, pendingUpdate);
+        views.setOnClickPendingIntent(R.id.place, pendingOpenApp);
+        views.setOnClickPendingIntent(R.id.imageView, pendingOpenApp);
+        views.setOnClickPendingIntent(R.id.humidity, pendingOpenApp);
+        views.setOnClickPendingIntent(R.id.temperature, pendingOpenApp);
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
     @Override
@@ -89,6 +107,7 @@ public class WeatherWidget extends AppWidgetProvider {
                     tvTempC =  String.valueOf(currency.getCurrent().getTemp_c());
                     tvHumidity = String.valueOf(currency.getCurrent().getHumidity());
                     tvCondition = String.valueOf(currency.getCurrent().getCondition().getText());
+                    //Glide.with(context).load("https:" + currency.getCurrent().getCondition().getIcon()).into(imgFromApi);
                 }
                 //Toast.makeText(context, tvTempC, Toast.LENGTH_SHORT).show();
             }
