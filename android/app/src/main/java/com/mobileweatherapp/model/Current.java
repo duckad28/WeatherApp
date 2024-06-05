@@ -3,6 +3,7 @@ package com.mobileweatherapp.model;
 public class Current {
     private float temp_c;
     private float humidity;
+    private Condition condition;
 
     public float getTemp_c() {
         return temp_c;
@@ -18,5 +19,13 @@ public class Current {
 
     public void setHumidity(float humidity) {
         this.humidity = humidity;
+    }
+
+    public Condition getCondition() {
+        return condition;
+    }
+
+    public void setCondition(Condition condition) {
+        this.condition = condition;
     }
 }

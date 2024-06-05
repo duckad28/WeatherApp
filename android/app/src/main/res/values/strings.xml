@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">MobileWeatherApp</string>
     <string name="text_place">Hà Nội</string>
+    <string name="text_condition">%s</string>
     <string name="text_temperature">%s</string>
     <string name="text_humidity">%s</string>
     <string name="time">%1$s</string>
