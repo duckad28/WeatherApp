@@ -13,6 +13,9 @@ import { DataSelections } from '../components';
 import { colors, fontSizes } from '../constants';
 import { getData, storeData } from '../utilities/asyncStorage';
 
+const en = ['Settings','General', 'Language', 'Temperature Units', 'Notifications', 'Update at night automatically', 'Update weather info between 23:00 and 07:00'];
+const vn = ['Cài đặt','Thông tin chung', 'Ngôn ngữ', 'Đơn vị nhiệt độ', 'Thông báo', 'Cập nhật tự động vào buổi tối', 'Cập nhật thông tin thời tiết giữa 23 giờ và 7 giờ sáng']
+
 
 const SettingScreen = (props) => {
     const { navigation } = props;
@@ -20,6 +23,8 @@ const SettingScreen = (props) => {
     let [isModalVisible, setModalVisible] = useState(false);
     let [isLanguage, setLanguage] = useState(false);
     let [isTemperature, setTemperature] = useState(false);
+    let [lan, setLan] = useState(en);
+
     let [languages, setLanguages] = useState([
         {
             name: 'Tiếng Việt',
@@ -42,8 +47,22 @@ const SettingScreen = (props) => {
     ]);
     const [isEnabled, setIsEnabled] = useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+
     const getAsyncData = async () => {
         let unit = await getData('unit');
+        let lang = await getData('language');
+        if (lang) {
+            setLanguages([
+                {
+                    name: 'Tiếng Việt',
+                    isSelected: lang != 'English'
+                },
+                {
+                    name: 'English',
+                    isSelected: lang == 'English'
+                },
+            ])
+        }
         if (unit) {
             setTemperatures([{
                 name: 'Celcius',
@@ -54,16 +73,40 @@ const SettingScreen = (props) => {
             }])
         }
     }
+
+    const getAsyncData2 = async () => {
+        let lang = await getData('language');
+        if (lang) {
+            setLanguages([
+                {
+                    name: 'Tiếng Việt',
+                    isSelected: lang != 'English'
+                },
+                {
+                    name: 'English',
+                    isSelected: lang == 'English'
+                },
+            ])
+        }
+    }
+
     useEffect(() => {
-        getAsyncData()
+        getAsyncData2();
+    }, [])
+
+    useEffect(() => {
+        getAsyncData();
     }, [props?.route?.params])
+
     useEffect(() => {
         languages.map(item => {
             if (item.isSelected) {
                 storeData('language', item.name)
+                setLan((item.name == 'English') ? en : vn);
             }
         })
     }, [languages])
+
     useEffect(() => {
         temperatures.map(item => {
             if (item.isSelected) {
@@ -71,43 +114,44 @@ const SettingScreen = (props) => {
             }
         })
     }, [temperatures])
+
+
+
+
     return (
         <View style={{
             backgroundColor: 'white',
             flex: 1,
             padding: 20
         }}>
-            <ModalSetting isVisible={isModalVisible}
-            isLanguageOn={isLanguage}
-            setVisible={setModalVisible}
-            isTemperatureOn={isTemperature}
-            languages={languages}
-            setLanguages={setLanguages}
-            temperatures={temperatures}
-            setTemperatures={setTemperatures}></ModalSetting>
-            <TouchableOpacity onPress={() => navigate('MainScreen', {unit: temperatures})} style={{ height: 40 }}>
+            <ModalSetting 
+                isVisible={isModalVisible}
+                isLanguageOn={isLanguage}
+                setVisible={setModalVisible}
+                isTemperatureOn={isTemperature}
+                languages={languages}
+                setLanguages={setLanguages}
+                temperatures={temperatures}
+                setTemperatures={setTemperatures}>
+            </ModalSetting>
+            <TouchableOpacity onPress={() => navigate('MainScreen', {unit: temperatures, language: languages})} style={{ height: 40 }}>
                 <FontAwesomeIcon icon={faArrowLeft} size={26}></FontAwesomeIcon>
             </TouchableOpacity>
             <View style={{ height: 60, justifyContent: 'center', borderBottomWidth: 1, borderColor: colors.fadeBlackTextColor }}>
-                <Text style={{ fontSize: 34, color: colors.fadeBlackTextColor, fontWeight: '300', textAlignVertical: 'center' }}>Settings</Text>
+                <Text style={{ fontSize: 34, color: colors.fadeBlackTextColor, fontWeight: '300', textAlignVertical: 'center' }}>{lan[0]}</Text>
             </View>
 
             {/**----------General------------- */}
             <View style={{ marginTop: 30 }}>
-                <Text style={headerStyle}>General</Text>
+                <Text style={headerStyle}>{lan[1]}</Text>
                 <View style={{
                     height: 40,
-                    borderBottomWidth: 1,
-                    borderColor: colors.fadeTextColor,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    margin: 10,
-                    justifyContent: 'space-between'
+                    ...generalStyle
                 }}>
-                    <Text style={normalTextStyle}>Language</Text>
+                    <Text style={normalTextStyle}>{lan[2]}</Text>
                     <TouchableOpacity onPress={() => {setModalVisible(true), setLanguage(true), setTemperature(false)}}>
-                    {languages.map(item => {
-                            return item.isSelected ? <Text style={normalTextStyle}>{item.name}</Text> : null
+                    {languages.map((item, index) => {
+                            return item.isSelected ? <Text key={index} style={normalTextStyle}>{item.name}</Text> : null
                             
                         })}
                     </TouchableOpacity>
@@ -116,38 +160,28 @@ const SettingScreen = (props) => {
 
                 <View style={{
                     height: 40,
-                    borderBottomWidth: 1,
-                    borderColor: colors.fadeTextColor,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    margin: 10,
-                    justifyContent: 'space-between'
+                    ...generalStyle
                 }}>
-                    <Text style={normalTextStyle}>Temperature Units</Text>
+                    <Text style={normalTextStyle}>{lan[3]}</Text>
                     <TouchableOpacity onPress={() => {setModalVisible(true), setTemperature(true), setLanguage(false)}}>
-                        {temperatures.map(item => {
-                            return item.isSelected ? <Text style={normalTextStyle}>{item.name}</Text> : null
+                        {temperatures.map((item, index) => {
+                            return item.isSelected ? <Text key ={index} style={normalTextStyle}>{item.name}</Text> : null
                         })}
                     </TouchableOpacity>
                 </View>
             </View>
             {/**----------Notifycation------------- */}
             <View style={{ marginTop: 30 }}>
-                <Text style={headerStyle}>Notifications</Text>
+                <Text style={headerStyle}>{lan[4]}</Text>
                 <View style={{
-                    borderBottomWidth: 1,
-                    borderColor: colors.fadeTextColor,
-                    flexDirection: 'row',
-                    alignItems: 'center',
+                    ...generalStyle,
                     flexGrow: 1,
-                    margin: 10,
                     paddingBottom: 10,
-                    justifyContent: 'space-between',
                     alignSelf: 'flex-start'
                 }}>
                     <View style={{ flex: 8 }}>
-                        <Text style={normalTextStyle}>Update at night automatically</Text>
-                        <Text style={{ marginLeft: 10, color: colors.fadeBlackTextColor }}>Update weather info between 23:00 and 07:00</Text>
+                        <Text style={normalTextStyle}>{lan[5]}</Text>
+                        <Text style={{ marginLeft: 10, color: colors.fadeBlackTextColor }}>{lan[6]}</Text>
                     </View>
 
                     <View style={{ flex: 2, justifyContent: 'center', alignItems: 'center' }}>
@@ -157,10 +191,7 @@ const SettingScreen = (props) => {
                             onValueChange={toggleSwitch}
                             value={isEnabled}
                         />
-
                     </View>
-
-
                 </View>
             </View>
         </View>
@@ -173,9 +204,6 @@ const ModalSetting = (props) => {
     let isLanguageOn = props.isLanguageOn;
     let { setVisible } = props;
     let isTemperatureOn = props.isTemperatureOn;
-    
-
-
     return (
         <Modal visible={isVisible} transparent={true}>
             <TouchableOpacity onPress={() => setVisible(false)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}>
@@ -192,7 +220,6 @@ const headerStyle = StyleSheet.create({
     fontSize: fontSizes.h4,
     color: 'black',
     fontWeight: '500'
-
 })
 const normalTextStyle = StyleSheet.create({
     fontSize: fontSizes.h5,
@@ -200,6 +227,13 @@ const normalTextStyle = StyleSheet.create({
     fontWeight: '500',
     textAlignVertical: 'center',
     margin: 10
-
+})
+const generalStyle = StyleSheet.create({
+    flexDirection: 'row', 
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    margin: 10,
+    borderBottomWidth: 1,
+    borderColor: colors.fadeTextColor,
 })
 export default SettingScreen;

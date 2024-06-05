@@ -25,11 +25,14 @@ import { getDayOfWeek, getWeatherIcon, cToF } from '../utilities';
 
 import GeoLocation from "@react-native-community/geolocation";
 import { fetchForecast, fetchGeo } from '../repositories/fetchData';
-import { debounce } from 'lodash';
+import { debounce, size } from 'lodash';
 import { getLocationData, storeLocationData } from '../utilities/locationStorage';
 import { getData, storeData } from '../utilities/asyncStorage';
 
 import Rain from 'rainy-background-reactnative';
+
+const en = ['Allow Weather to access your location', 'Daily Forecast', '24 Hours Forecast', 'Sun', 'Moon', 'Rise', 'Set'];
+const vn = ['Cho phép truy cập vào vị trí của bạn', 'Dự báo theo ngày', 'Dự báo thời tiết trong ngày', 'Mặt trời', 'Mặt trăng',  'Mọc', 'Lặn'];
 
 const MainScreen = (props) => {
     const { navigation } = props;
@@ -44,12 +47,14 @@ const MainScreen = (props) => {
     let [isEmpty, setIsEmpty] = useState(true);
 
     let [refreshing, setRefreshing] = useState(false);
-    let [weatherLocations, setWeatherLocations] = useState([{location: 'Ha Noi'}]);
+    let [weatherLocations, setWeatherLocations] = useState([{ location: 'Ha Noi' }]);
     let [weatherDatas, setWeatherDatas] = useState([]);
     let [celUnit, setCelUnit] = useState(true);
     let [locationPermission, setLocationPermission] = useState(route?.params?.permission)
     let [index, setIndex] = useState(0);
     let [preWeather, setPreWeather] = useState([]);
+    let [canFetch, setCanFetch] = useState(false);
+    let [isEng, setIsEng] = useState(true);
     const ref = useRef(null);
 
     //Lay dia chi chi tiet tu toa do
@@ -65,24 +70,25 @@ const MainScreen = (props) => {
 
     const fetchWeatherDatas = () => {
         const temp = [];
-        const data = weatherLocations.map(async ({location}) => {
+        const data = weatherLocations.map(async ({ location }) => {
             let now = new Date();
-            fetchForecast({cityName: location})
+            fetchForecast({ cityName: location })
                 .then((data) => {
                     temp.push({
                         location: location,
-                        fetch_time: now,
+                        fetch_time: now.valueOf(),
                         local_time: data?.location?.localtime,
                         imageBackground: (data?.current?.is_day == 1) ? images.image4 : images.image3,
                         aqiData: data?.current?.air_quality,
                         currentData: data?.current,
                         forecastData: data?.forecast?.forecastday,
                     })
+                    setCanFetch(true);
                 })
-         });
+        });
         setWeatherDatas(temp);
         storeData('city', temp[0]?.location);
-        
+
     }
 
     const handleRefresh = () => {
@@ -94,45 +100,45 @@ const MainScreen = (props) => {
 
 
     const handleAccessLocation = () => {
-            GeoLocation.getCurrentPosition(position => {
-                if (position.coords) {
-                    reverseGeoCode({
-                        lat: position.coords.latitude,
-                        long: position.coords.longitude,
-                    });
-    
-                }
-            })
-            if (currentLocation.address?.city) {
-                const temp = [...weatherDatas]
-    
-                if (temp[0]?.location !== currentLocation?.address?.city) {
-                    let now = new Date();
-                fetchForecast({cityName:  currentLocation?.position?.lat + ", " + currentLocation?.position?.lng})
+        GeoLocation.getCurrentPosition(position => {
+            if (position.coords) {
+                reverseGeoCode({
+                    lat: position.coords.latitude,
+                    long: position.coords.longitude,
+                });
+
+            }
+        })
+        if (currentLocation.address?.city) {
+            const temp = [...weatherDatas]
+
+            if (temp[0]?.location !== currentLocation?.address?.city) {
+                let now = new Date();
+                fetchForecast({ cityName: currentLocation?.position?.lat + ", " + currentLocation?.position?.lng })
                     .then((data) => {
                         temp.unshift({
                             location: currentLocation?.address?.city,
-                            fetch_time: now,
+                            fetch_time: now.valueOf(),
                             local_time: data?.location?.localtime,
                             imageBackground: (data?.current?.is_day == 1) ? images.image4 : images.image3,
                             aqiData: data?.current?.air_quality,
                             currentData: data?.current,
                             forecastData: data?.forecast?.forecastday,
                         })
-                        
+
                     })
-                
+
                 setRefreshing(true);
                 setWeatherDatas(temp)
                 setRefreshing(false);
-                }
-                else {
+            }
+            else {
                 alert("trung")
             }
         }
     }
 
-    const getAsyncData = async() => {
+    const getAsyncData = async () => {
         let locations = await getLocationData('locations');
         if (locations && locations.length > 0) {
             setWeatherLocations(locations)
@@ -141,28 +147,44 @@ const MainScreen = (props) => {
         setIsFetched(true)
     }
 
-    const getPreWeather = async() => {
+    const getPreWeather = async () => {
         let weathers = await getLocationData('weathers');
         if (weathers && weathers.length > 0) {
             setPreWeather(weathers);
         }
     }
 
-    const getUnit = async() => {
+    const getUnit = async () => {
         let unit = await getData('unit');
         if (unit) {
             setCelUnit(unit == 'Celcius');
         }
     }
 
-    const getPermisison = async() => {
+    const getLanguage = async () => {
+        let lang = await getData('language');
+        if (lang) {
+            console.log(lang)
+            setIsEng(lang == 'English');
+        }
+    }
+
+    const getPermisison = async () => {
         let isPermission = await getData('LocationPermission');
         setLocationPermission(isPermission == "true")
     }
 
+    useEffect(() => {
+        if (route?.params?.newWeatherData) {
+            setWeatherDatas(route?.params?.newWeatherData);
+        }
+    }, [route?.params?.newWeatherData])
+
 
     useEffect(() => {
         getPreWeather();
+        getUnit();
+        getLanguage();
     }, [])
 
     useEffect(() => {
@@ -178,12 +200,19 @@ const MainScreen = (props) => {
             })
         }
     }, [route?.params?.toIndex])
-    
+
     useEffect(() => {
         if (route?.params?.unit) {
             getUnit()
         }
-        
+
+    }, [route?.params?.unit])
+
+    useEffect(() => {
+        if (route?.params?.language) {
+            getLanguage()
+        }
+
     }, [route?.params?.unit])
 
     useEffect(() => {
@@ -193,7 +222,7 @@ const MainScreen = (props) => {
     useEffect(() => {
         fetchWeatherDatas();
     }, [weatherLocations])
-    
+
 
     if (isFetched == false) {
         return <HomeView></HomeView>
@@ -214,9 +243,9 @@ const MainScreen = (props) => {
 
 
     if (isFetched) {
-        if (weatherDatas.length == weatherLocations.length) {
+        if (canFetch && weatherDatas.length != 0) {
             storeLocationData('weathers', weatherDatas);
-        } else if (weatherDatas.length == 0) {
+        } else {
             setWeatherDatas(preWeather);
         }
         return (
@@ -234,6 +263,7 @@ const MainScreen = (props) => {
                     showsHorizontalScrollIndicator
                     initialScrollIndex={index}
                     renderItem={(weatherDataItem) => {
+                        let lang = isEng ? en : vn;
                         let fetch_time = new Date(weatherDataItem?.item?.fetch_time);
                         let fetch_day = fetch_time.getDay();
                         let fetch_hour = fetch_time.getHours();
@@ -243,49 +273,53 @@ const MainScreen = (props) => {
                         let now = new Date();
                         let current_day = now.getDay();
                         let current_hour = now.getHours();
-                        let i_day = (current_day - fetch_day);
-                        let i_hour = (current_hour - fetch_hour);
-                        if (i_day < 0) {
-                            i_day = i_day + 7;
-                        }
-                        
-                        if (i_day > 6) {
-                            i_day = 6;
-                        }
+                        let i_day = 0;
+                        let i_hour = local_hour;
                         let current_weather = weatherDataItem?.item?.currentData;
-
-                        if (i_day == 0) {
-                            if (i_hour != 0) {
-                                i_hour = local_hour + current_hour - fetch_hour;
+                        console.log(fetch_hour)
+                        if (fetch_day != current_day || fetch_hour != current_hour) {
+                            i_day = (current_day - fetch_day);
+                            i_hour = (current_hour - fetch_hour);
+                            if (i_day < 0) {
+                                i_day = i_day + 7;
+                            }
+                            if (i_day > 6) {
+                                i_day = 6;
+                            }
+                            if (i_day == 0) {
+                                if (i_hour != 0) {
+                                    i_hour = local_hour + current_hour - fetch_hour;
+                                    if (i_hour > 23) {
+                                        i_hour = i_hour - 23;
+                                        i_day = 1;
+                                    }
+                                    current_weather = weatherDataItem?.item?.forecastData[i_day]?.hour[i_hour];
+                                } else {
+                                    i_hour = local_hour;
+                                }
+                            }
+                            if (i_day != 0) {
+                                i_hour = local_hour + current_hour + 23 - fetch_hour;
                                 if (i_hour > 23) {
                                     i_hour = i_hour - 23;
-                                    i_day = 1;
+                                    i_day = (i_day + 1);
+                                    if (i_day > 6) {
+                                        i_day = 6;
+                                    }
                                 }
                                 current_weather = weatherDataItem?.item?.forecastData[i_day]?.hour[i_hour];
-                            } else {
-                                i_hour = local_hour;
                             }
                         }
-                        
-                        
-                        if (i_day != 0) {
-                            i_hour = local_hour + current_hour + 23 - fetch_hour;
-                            if (i_hour > 23) {
-                                i_hour = i_hour - 23;
-                                i_day = (i_day + 1);
-                                if (i_day > 6) {
-                                    i_day = 6;
-                                }
-                            }
-                            current_weather = weatherDataItem?.item?.forecastData[i_day]?.hour[i_hour];
-                        }
+
+
+
                         let current_temperature = current_weather?.temp_c;
                         let max_temperature = Math.round(weatherDataItem?.item?.forecastData[i_day]?.day?.maxtemp_c);
                         let min_temperature = Math.round(weatherDataItem?.item?.forecastData[i_day]?.day?.mintemp_c);
                         let current_weather_condition = current_weather?.condition?.text;
                         let current_icon = images[getWeatherIcon(current_weather?.condition?.icon)];
                         let image_background = weatherDataItem?.item?.imageBackground;
-                        
+
                         let current_extrainfo = [
                             {
                                 name: 'Humidity',
@@ -304,7 +338,7 @@ const MainScreen = (props) => {
                                 value: Math.round(current_weather?.feelslike_c)
                             }
                         ];
-                        
+
                         let brief_forcast = [
                             {
                                 date: weatherDataItem?.item?.forecastData[i_day % 7].date,
@@ -362,18 +396,22 @@ const MainScreen = (props) => {
                         }
 
                         if (current_hour != fetch_hour) {
-                            image_background = (weatherDataItem?.item?.forecastData[i_day]?.hour[i_hour]?.is_day == 1) ? images.image4 : images.image3;
+                            image_background = (current_weather?.is_day == 1) ? images.image4 : images.image3;
                         }
 
                         let is_raining = current_weather?.condition?.text.toLowerCase().includes("rain");
+
+                        console.log(i_hour)
+
+
                         return (
                             <View style={{ width: windowWidth }}>
-                                
+
                                 {/**------------------------App---------------------------- */}
                                 <ImageBackground source={image_background}
                                     style={{ flex: 1 }}
                                     resizeMode='stretch'
-                                    >
+                                >
 
                                     {/*---------Header---------*/}
                                     <View style={{
@@ -384,7 +422,7 @@ const MainScreen = (props) => {
                                             ...commonStyle1,
                                             paddingHorizontal: 20,
                                         }}>
-                                            <TouchableOpacity onPress={() => {navigate('LocationScreen')}}>
+                                            <TouchableOpacity onPress={() => { navigate('LocationScreen', { weatherData: weatherDatas, unit: celUnit, lan: isEng }) }}>
                                                 <FontAwesomeIcon
                                                     icon={faPlus}
                                                     size={fontSizes.iconSize}
@@ -410,12 +448,12 @@ const MainScreen = (props) => {
                                         <View style={{
                                             flex: 1, alignItems: 'center'
                                         }}>
-                                            <SmallButton content={'Allow Weather to access your location'}
+                                            <SmallButton content={lang[0]}
                                                 onPress={() => {
-                                                    if(locationPermission) {
+                                                    if (locationPermission) {
                                                         handleAccessLocation()
                                                     } else {
-                                                        navigate('LocationPermissionScreen', {permission: locationPermission});
+                                                        navigate('LocationPermissionScreen', { permission: locationPermission });
                                                     }
                                                 }}
                                             ></SmallButton>
@@ -472,7 +510,7 @@ const MainScreen = (props) => {
                                                         ...commonStyle1,
                                                         justifyContent: 'center'
                                                     }}>
-                                                        <Text 
+                                                        <Text
                                                             style={{
                                                                 color: colors.textColor,
                                                                 fontSize: fontSizes.h4
@@ -480,7 +518,7 @@ const MainScreen = (props) => {
                                                         >
                                                             {current_weather_condition}
                                                         </Text>
-                                                       
+
                                                         <View style={{ width: 20 }}></View>
                                                         <Temperature
                                                             highest={max_temperature}
@@ -498,7 +536,7 @@ const MainScreen = (props) => {
                                                             ...commonStyle1,
                                                             justifyContent: 'space-evenly',
                                                             marginHorizontal: 30,
-                                                            
+
                                                         }}>
                                                             <SmallButton content={'AQI'} onPress={() => navigate('AqiScreen', { data: weatherDataItem?.item?.aqiData })}></SmallButton>
                                                             <View style={{
@@ -525,7 +563,8 @@ const MainScreen = (props) => {
                                                     marginHorizontal: 10,
                                                     marginVertical: 20,
                                                     backgroundColor: colors.backgroundColor,
-                                                    borderRadius: 20 }}
+                                                    borderRadius: 20
+                                                }}
                                                 >
                                                     <View style={{
                                                         flex: 2,
@@ -547,7 +586,16 @@ const MainScreen = (props) => {
                                                         </FlatList>
                                                     </View>
                                                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                                                        <Button onPress={() => navigate('UpcomingWeatherScreen', { data: weatherDataItem?.item?.forecastData, background: image_background, unit: celUnit, day: i_day })} content={'Daily Forecast'} ></Button>
+                                                        <Button
+                                                            onPress={() =>
+                                                                navigate('UpcomingWeatherScreen', {
+                                                                    data: weatherDataItem?.item?.forecastData,
+                                                                    background: image_background,
+                                                                    unit: celUnit, day: i_day,
+                                                                    lan: isEng
+                                                                })
+                                                            }
+                                                            content={lang[1]}></Button>
                                                     </View>
                                                 </View>
                                             </View>
@@ -559,7 +607,7 @@ const MainScreen = (props) => {
                                                 margin: 10,
                                                 marginTop: 0,
                                                 borderRadius: 15,
-                                                
+
                                             }}>
                                                 {/*------------Header------------*/}
                                                 <View style={{
@@ -570,15 +618,15 @@ const MainScreen = (props) => {
                                                 }}>
                                                     <FontAwesomeIcon icon={faClock} color={colors.textColor}></FontAwesomeIcon>
                                                     <View style={{ width: 10 }}></View>
-                                                    <Text style={textStyle}>24 hours forecast</Text>
+                                                    <Text style={textStyle}>{lang[2]}</Text>
                                                 </View>
 
                                                 {/*------------Info------------*/}
-                                                <ScrollView nestedScrollEnabled showsHorizontalScrollIndicator={false} horizontal style={{flex: 1, flexDirection: 'row' }}>
+                                                <ScrollView nestedScrollEnabled showsHorizontalScrollIndicator={false} horizontal style={{ flex: 1, flexDirection: 'row' }}>
                                                     {weatherDataItem?.item?.forecastData[i_day]?.hour.map((item, index) => {
                                                         return (<WeatherHourlyV
-                                                            key = {index}
-                                                            unit = {celUnit}
+                                                            key={index}
+                                                            unit={celUnit}
                                                             max={max_temperature}
                                                             temp={item.temp_c}
                                                             hour={item.time}
@@ -605,18 +653,28 @@ const MainScreen = (props) => {
                                                         flex: 1,
                                                         backgroundColor: colors.backgroundColor,
                                                         margin: 5,
-                                                        borderRadius: 10,
-                                                        justifyContent: 'space-evenly'
+                                                        borderRadius: 10
                                                     }}>
-                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
-                                                            <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.sunrise}</Text>
-                                                            <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>Sunrise</Text>
+                                                        <View style={{ marginHorizontal: 5, marginTop: 2, justifyContent: 'space-start', alignItems: 'center', flexDirection: 'row' }}>
+                                                            <Text style={{ ...textStyle, fontSize: fontSizes.h7, color: colors.fadeTextColor }}>{lang[3]}</Text>
                                                         </View>
-                                                        <View style={{ height: 1, backgroundColor: colors.fadeTextColor, marginHorizontal: 20 }}></View>
-                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
-                                                            <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.sunset}</Text>
-                                                            <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>Sunset</Text>
+                                                        <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                                                            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
+                                                                <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.sunrise}</Text>
+                                                                <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>{lang[5]}</Text>
+                                                            </View>
+                                                            <View style={{ height: 1, backgroundColor: colors.fadeTextColor, marginHorizontal: 20 }}></View>
+                                                            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
+                                                                <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.sunset}</Text>
+                                                                <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>{lang[6]}</Text>
+                                                            </View>
+                                                            <View style={{ marginHorizontal: 5, marginBottom: 5, justifyContent: 'flex-end', alignItems: 'center', flexDirection: 'row' }}>
+                                                            <FontAwesomeIcon icon={faSun} color={'white'} size={10}></FontAwesomeIcon>
                                                         </View>
+                                                            
+                                                        </View>
+                                                        
+
                                                     </View>
 
                                                     <View style={{
@@ -624,18 +682,26 @@ const MainScreen = (props) => {
                                                         backgroundColor: colors.backgroundColor,
                                                         margin: 5,
                                                         borderRadius: 10,
-                                                        justifyContent: 'space-evenly'
                                                     }}>
-                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
-                                                            <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.moonrise}</Text>
-                                                            <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>Moonrise</Text>
+                                                        <View style={{ marginHorizontal: 5, marginTop: 2, justifyContent: 'flex-start', alignItems: 'center', flexDirection: 'row' }}>
+                                                            <Text style={{ ...textStyle, fontSize: fontSizes.h7, color: colors.fadeTextColor }}>{lang[4]}</Text>
                                                         </View>
-                                                        <View style={{ height: 1, backgroundColor: colors.fadeTextColor, marginHorizontal: 20 }}></View>
-                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
-                                                            <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.moonset}</Text>
-                                                            <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>Moonset</Text>
+                                                        <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                                                            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
+                                                                <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.moonrise}</Text>
+                                                                <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>{lang[5]}</Text>
+                                                            </View>
+                                                            <View style={{ height: 1, backgroundColor: colors.fadeTextColor, marginHorizontal: 20 }}></View>
+                                                            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
+                                                                <Text style={textStyle}>{weatherDataItem?.item?.forecastData[0].astro.moonset}</Text>
+                                                                <Text style={{ ...textStyle, fontSize: fontSizes.h6, color: colors.fadeTextColor }}>{lang[6]}</Text>
+                                                            </View>
+                                                            <View style={{ marginHorizontal: 5, marginBottom: 5, justifyContent: 'flex-end', alignItems: 'center', flexDirection: 'row' }}>
+                                                            <FontAwesomeIcon icon={faMoon} color={'white'} size={10}></FontAwesomeIcon>
+                                                        </View>
                                                         </View>
                                                     </View>
+                                                    
                                                 </View>
 
                                                 {/*------------ExtraInfor------------*/}
@@ -670,7 +736,7 @@ const MainScreen = (props) => {
                         )
                     }}
                     keyExtractor={(item, index) => index}
-                    ></FlatList>
+                ></FlatList>
 
 
             </View>

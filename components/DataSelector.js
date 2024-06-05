@@ -26,8 +26,8 @@ const DataSelections = (props) => {
             overflow: 'hidden'
         }}>
             {
-                data.map(item => {
-                    return <SettingItem setting={item} onPress={() => {
+                data.map((item, index) => {
+                    return <SettingItem key={index} setting={item} onPress={() => {
                         let newData = data.map(eachItem => {
                             return {
                                 ...eachItem,
