@@ -20,88 +20,47 @@ const vn = ['Cài đặt','Thông tin chung', 'Ngôn ngữ', 'Đơn vị nhiệt
 const SettingScreen = (props) => {
     const { navigation } = props;
     const { navigate } = navigation;
+    let {route} = props;
+
+    // Modal
     let [isModalVisible, setModalVisible] = useState(false);
     let [isLanguage, setLanguage] = useState(false);
     let [isTemperature, setTemperature] = useState(false);
-    let [lan, setLan] = useState(en);
 
+    // Setting
+    let [isC, setIsC] = useState(route?.params?.unit);
+    let [isE, setIsE] = useState(route?.params?.lang);
+    let [lan, setLan] = useState(route?.params?.lang ? en : vn);
+
+    // Item
     let [languages, setLanguages] = useState([
         {
             name: 'Tiếng Việt',
-            isSelected: false
+            isSelected: !route?.params?.lang
         },
         {
             name: 'English',
-            isSelected: true
+            isSelected: route?.params?.lang
         },
     ]);
     let [temperatures, setTemperatures] = useState([
         {
             name: 'Celcius',
-            isSelected: true
+            isSelected: route?.params?.unit
         },
         {
             name: 'Fahrenheit',
-            isSelected: false
+            isSelected: !route?.params?.unit
         },
     ]);
     const [isEnabled, setIsEnabled] = useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
-    const getAsyncData = async () => {
-        let unit = await getData('unit');
-        let lang = await getData('language');
-        if (lang) {
-            setLanguages([
-                {
-                    name: 'Tiếng Việt',
-                    isSelected: lang != 'English'
-                },
-                {
-                    name: 'English',
-                    isSelected: lang == 'English'
-                },
-            ])
-        }
-        if (unit) {
-            setTemperatures([{
-                name: 'Celcius',
-                isSelected: unit == 'Celcius'
-            }, {
-                name: 'Fahrenheit',
-                isSelected: unit != 'Celcius'
-            }])
-        }
-    }
-
-    const getAsyncData2 = async () => {
-        let lang = await getData('language');
-        if (lang) {
-            setLanguages([
-                {
-                    name: 'Tiếng Việt',
-                    isSelected: lang != 'English'
-                },
-                {
-                    name: 'English',
-                    isSelected: lang == 'English'
-                },
-            ])
-        }
-    }
-
-    useEffect(() => {
-        getAsyncData2();
-    }, [])
-
-    useEffect(() => {
-        getAsyncData();
-    }, [props?.route?.params])
-
     useEffect(() => {
         languages.map(item => {
             if (item.isSelected) {
                 storeData('language', item.name)
+                setIsE(item.name == 'English');
                 setLan((item.name == 'English') ? en : vn);
             }
         })
@@ -110,13 +69,11 @@ const SettingScreen = (props) => {
     useEffect(() => {
         temperatures.map(item => {
             if (item.isSelected) {
-                storeData('unit', item.name)
+                storeData('unit', item.name);
+                setIsC(item.name == 'Celcius');
             }
         })
     }, [temperatures])
-
-
-
 
     return (
         <View style={{
@@ -134,7 +91,11 @@ const SettingScreen = (props) => {
                 temperatures={temperatures}
                 setTemperatures={setTemperatures}>
             </ModalSetting>
-            <TouchableOpacity onPress={() => navigate('MainScreen', {unit: temperatures, language: languages})} style={{ height: 40 }}>
+            <TouchableOpacity
+                onPress={() => {
+                    navigate('MainScreen', {unit: isC, lang: isE})}
+                    }
+                style={{ height: 40 }}>
                 <FontAwesomeIcon icon={faArrowLeft} size={26}></FontAwesomeIcon>
             </TouchableOpacity>
             <View style={{ height: 60, justifyContent: 'center', borderBottomWidth: 1, borderColor: colors.fadeBlackTextColor }}>

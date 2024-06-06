@@ -7,7 +7,7 @@ import {
     TextInput,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowLeft, faPlus, faSearch, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlus, faSearch, faMinusCircle, faWifi } from '@fortawesome/free-solid-svg-icons';
 import { LocationItem } from '../components';
 import { colors } from '../constants';
 import { fetchSuggestLocation, fetchForecast } from '../repositories/fetchData';
@@ -15,6 +15,7 @@ import { debounce } from 'lodash';
 import { storeLocationData, getLocationData } from '../utilities/locationStorage';
 import { storeData, getData } from '../utilities/asyncStorage';
 import { images } from '../constants/index'
+import NetInfo from "@react-native-community/netinfo";
 
 const en = ['Manage places', 'Enter location', 'Cancel'];
 const vn = ['Quản lý địa điểm', 'Nhập vị trí', 'Hủy']
@@ -24,7 +25,7 @@ const LocationScreen = (props) => {
     const { navigate } = navigation;
     const { route } = props;
 
-    let [lan, setLan] = useState(route?.params?.lan ? en : vn);
+    let [lan, setLan] = useState(route?.params?.lang ? en : vn);
 
     let [searchText, setSearchText] = useState('');
     let [searching, setSearching] = useState(false);
@@ -32,12 +33,13 @@ const LocationScreen = (props) => {
     let [weatherData, setWeatherData] = useState([]);
     let [suggestLocations, setSuggestLocations] = useState([]);
     let [isChange, setIsChange] = useState(0);
+    let [internet, setInternet] = useState(true);
 
     const handlePress = () => {
         if (isChange > 0) {
-            navigate('MainScreen', { newLocations: locationData, newWeatherData: weatherData })
+            navigate('MainScreen', { newLocations: locationData, newWeatherData: weatherData, lang: route?.params?.lang, unit: route?.params?.unit })
         } else {
-            navigate('MainScreen')
+            navigate('MainScreen', {lang: route?.params?.lang, unit: route?.params?.unit})
         }
     }
 
@@ -68,7 +70,7 @@ const LocationScreen = (props) => {
                     location: loc?.name,
                     fetch_time: now.valueOf(),
                     local_time: data?.location?.localtime,
-                    imageBackground: (data?.current?.is_day == 1) ? images.image4 : images.image3,
+                    imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
                     aqiData: data?.current?.air_quality,
                     currentData: data?.current,
                     forecastData: data?.forecast?.forecastday,
@@ -100,14 +102,24 @@ const LocationScreen = (props) => {
 
     const handleSearch = (text) => {
         setSearchText(text);
-        if (text.length > 2) {
-            fetchSuggestLocation({ cityName: text })
-                .then(data => {
-                    setSuggestLocations(data);
-                })
-                .catch(error => {
-                    console.log(error)
-                })
+        if (text && text.length > 2) {
+            if (Platform.OS === "android") {
+                NetInfo.fetch().then(({isConnected}) => {
+                  if (isConnected) {
+                    setInternet(true);
+                    fetchSuggestLocation({ cityName: text })
+                        .then(data => {
+                            setSuggestLocations(data);
+                        })
+                        .catch(error => {
+                            console.log(error)
+                        })
+                  } else {
+                    setInternet(false);
+                  }
+                });
+              }
+            
         }
     }
 
@@ -122,6 +134,10 @@ const LocationScreen = (props) => {
             setWeatherData(route?.params?.weatherData);
         }
     }, [route?.params?.weatherData])
+
+
+
+
 
     if (searching == false) {
         return (
@@ -169,18 +185,6 @@ const LocationScreen = (props) => {
                         <FontAwesomeIcon icon={faSearch} size={18} style={{ paddingHorizontal: 20 }}></FontAwesomeIcon>
                         <TextInput
                             onFocus={() => setSearching(!searching)}
-                            onChangeText={(text) => {
-                                setSearchText(text)
-                            }}
-                            onSubmitEditing={() => {
-                                if (searchText) {
-                                    storeData('city', searchText);
-                                }
-
-                                if (isChange > 0) {
-                                    navigate('MainScreen', { cityName: searchText })
-                                }
-                            }}
                             placeholder={lan[1]}
                             style={{}}
                         ></TextInput>
@@ -189,9 +193,6 @@ const LocationScreen = (props) => {
 
 
                     <View style={{ flex: 12, margin: 20 }}>
-                        {/* .filter((eachLocation) => {
-                            return eachLocation?.location?.toLowerCase()?.includes(searchText.toLowerCase())
-                        }) */}
                         <FlatList data={weatherData}
                             showsVerticalScrollIndicator={false}
                             renderItem={({ item, index }) => {
@@ -204,9 +205,9 @@ const LocationScreen = (props) => {
                                         <LocationItem eachLocation={item} unit={route?.params?.unit} onPress={() => {
                                             storeData('city', item.location);
                                             if (isChange > 0) {
-                                                navigate('MainScreen', { toIndex: index, newWeatherData: weatherData });
+                                                navigate('MainScreen', { toIndex: index, newLocations: locationData, newWeatherData: weatherData, lang: route?.params?.lang, unit: route?.params?.unit });
                                             } else {
-                                                navigate('MainScreen', { toIndex: index });
+                                                navigate('MainScreen', { toIndex: index, lang: route?.params?.lang, unit: route?.params?.unit });
                                             }
                                         }}>
                                         </LocationItem>
@@ -306,6 +307,29 @@ const LocationScreen = (props) => {
                                     )
                                 })
                             }
+                        </View>
+                    ) : null
+                }
+                {
+                    !internet ? (
+                        <View style={{height: 300, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 10}}>
+                            <FontAwesomeIcon icon={faWifi} size={50}></FontAwesomeIcon>
+                            <Text>Couldn't connect to the network, try again</Text>
+                            <TouchableOpacity 
+                                style={{
+                                    height: 40,
+                                    width: 120,
+                                    backgroundColor: colors.buttonColor, 
+                                    borderRadius: 30,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}
+                                onPress={() => {
+                                    handleSearch(searchText);
+                                }}
+                            >
+                                <Text>Try again</Text>
+                            </TouchableOpacity>
                         </View>
                     ) : null
                 }

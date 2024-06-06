@@ -7,14 +7,15 @@ import {
     Text,
     ScrollView,
     StyleSheet,
-    Modal,
     Image,
     ActivityIndicator,
     RefreshControl,
     Animated,
     Dimensions,
-    LogBox
+    LogBox,
+    Platform
 } from 'react-native';
+
 import { SmallButton, BigTemperature, Temperature, WeatherInfoH, Button, WeatherHourlyV, ExtraInfoItem } from '../components';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import LottieView from 'lottie-react-native';
@@ -28,34 +29,63 @@ import { fetchForecast, fetchGeo } from '../repositories/fetchData';
 import { debounce, size } from 'lodash';
 import { getLocationData, storeLocationData } from '../utilities/locationStorage';
 import { getData, storeData } from '../utilities/asyncStorage';
+import NetInfo from "@react-native-community/netinfo";
 
 import Rain from 'rainy-background-reactnative';
 
 const en = ['Allow Weather to access your location', 'Daily Forecast', '24 Hours Forecast', 'Sun', 'Moon', 'Rise', 'Set'];
 const vn = ['Cho phép truy cập vào vị trí của bạn', 'Dự báo theo ngày', 'Dự báo thời tiết trong ngày', 'Mặt trời', 'Mặt trăng',  'Mọc', 'Lặn'];
 
+
+
 const MainScreen = (props) => {
     const { navigation } = props;
     const { route } = props;
     const { navigate } = navigation;
 
+    // Kích thước
     const windowWidth = Dimensions.get('window').width;
     const windowHeight = Dimensions.get('window').height;
 
-    let [currentLocation, setCurrentLocation] = useState({});
+    // Các dữ liệu khởi tạo
     let [isFetched, setIsFetched] = useState(false);
-    let [isEmpty, setIsEmpty] = useState(true);
-
     let [refreshing, setRefreshing] = useState(false);
-    let [weatherLocations, setWeatherLocations] = useState([{ location: 'Ha Noi' }]);
+    
+
+    // Các dữ liệu
+    let [weatherLocations, setWeatherLocations] = useState(route?.params?.newLocations);
     let [weatherDatas, setWeatherDatas] = useState([]);
-    let [celUnit, setCelUnit] = useState(true);
-    let [locationPermission, setLocationPermission] = useState(route?.params?.permission)
-    let [index, setIndex] = useState(0);
     let [preWeather, setPreWeather] = useState([]);
-    let [canFetch, setCanFetch] = useState(false);
-    let [isEng, setIsEng] = useState(true);
+    
+    // Các thông tin chung
+    let [index, setIndex] = useState(0);
+    let [isE, setIsE] = useState(true);
+    let [isC, setIsC] = useState(true);
+
+    // Vị trí hiện tại
+    let [currentLocation, setCurrentLocation] = useState({});
+    let [locationPermission, setLocationPermission] = useState(route?.params?.permission);
+    
+    // Location list
     const ref = useRef(null);
+
+    let [internet, setInternet] = useState(false);
+
+    const CheckConnectivity = () => {
+        // For Android devices
+        if (Platform.OS === "android") {
+          NetInfo.fetch().then(({isConnected}) => {
+            if (isConnected) {
+                setInternet(true);
+            } else {
+                setInternet(false)
+            }
+          });
+        }
+    };
+
+    // Check internet
+    
 
     //Lay dia chi chi tiet tu toa do
     const reverseGeoCode = async ({ lat, long }) => {
@@ -68,9 +98,10 @@ const MainScreen = (props) => {
             )
     };
 
-    const fetchWeatherDatas = () => {
+    // Lấy dữ liệu từ API
+    const fetchWeatherDatas = (locations) => {
         const temp = [];
-        const data = weatherLocations.map(async ({ location }) => {
+        const data = locations.map(async ({ location }) => {
             let now = new Date();
             fetchForecast({ cityName: location })
                 .then((data) => {
@@ -78,27 +109,27 @@ const MainScreen = (props) => {
                         location: location,
                         fetch_time: now.valueOf(),
                         local_time: data?.location?.localtime,
-                        imageBackground: (data?.current?.is_day == 1) ? images.image4 : images.image3,
+                        imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
                         aqiData: data?.current?.air_quality,
                         currentData: data?.current,
                         forecastData: data?.forecast?.forecastday,
                     })
-                    setCanFetch(true);
+                })
+                .catch((error) => {
+                    console.log(error)
                 })
         });
         setWeatherDatas(temp);
-        storeData('city', temp[0]?.location);
-
     }
 
+    // Xử lý refresh
     const handleRefresh = () => {
         setRefreshing(true);
-        fetchWeatherDatas()
+        fetchWeatherDatas(weatherLocations);
         setRefreshing(false);
     }
 
-
-
+    // Xử lý khi truy cập địa chỉ hiện tại
     const handleAccessLocation = () => {
         GeoLocation.getCurrentPosition(position => {
             if (position.coords) {
@@ -111,7 +142,6 @@ const MainScreen = (props) => {
         })
         if (currentLocation.address?.city) {
             const temp = [...weatherDatas]
-
             if (temp[0]?.location !== currentLocation?.address?.city) {
                 let now = new Date();
                 fetchForecast({ cityName: currentLocation?.position?.lat + ", " + currentLocation?.position?.lng })
@@ -120,14 +150,12 @@ const MainScreen = (props) => {
                             location: currentLocation?.address?.city,
                             fetch_time: now.valueOf(),
                             local_time: data?.location?.localtime,
-                            imageBackground: (data?.current?.is_day == 1) ? images.image4 : images.image3,
+                            imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
                             aqiData: data?.current?.air_quality,
                             currentData: data?.current,
                             forecastData: data?.forecast?.forecastday,
                         })
-
                     })
-
                 setRefreshing(true);
                 setWeatherDatas(temp)
                 setRefreshing(false);
@@ -138,40 +166,54 @@ const MainScreen = (props) => {
         }
     }
 
-    const getAsyncData = async () => {
-        let locations = await getLocationData('locations');
-        if (locations && locations.length > 0) {
-            setWeatherLocations(locations)
-        }
+    // Khởi tạo app
+    const startApp = async () => {
         await delay(2000)
         setIsFetched(true)
     }
 
+    // Lấy các địa điểm được lưu sẵn
+    const getAsyncData = async () => {
+        let locations = await getLocationData('locations');
+        if (locations && locations.length > 0) {
+            setWeatherLocations(locations);
+            if (Platform.OS === "android") {
+                NetInfo.fetch().then(({isConnected}) => {
+                  if (isConnected) {
+                      setInternet(true);
+                      fetchWeatherDatas(locations);
+                  } else {
+                      setInternet(false);
+                  }
+                });
+              }
+            
+        }   
+    }
+
+    // Lấy dữ liệu các địa điểm được lưu
     const getPreWeather = async () => {
         let weathers = await getLocationData('weathers');
         if (weathers && weathers.length > 0) {
+            alert(weathers[0]?.currentData?.temp_c)
             setPreWeather(weathers);
-        }
-    }
-
-    const getUnit = async () => {
-        let unit = await getData('unit');
-        if (unit) {
-            setCelUnit(unit == 'Celcius');
-        }
-    }
-
-    const getLanguage = async () => {
-        let lang = await getData('language');
-        if (lang) {
-            console.log(lang)
-            setIsEng(lang == 'English');
+            setWeatherDatas(weathers);
         }
     }
 
     const getPermisison = async () => {
         let isPermission = await getData('LocationPermission');
         setLocationPermission(isPermission == "true")
+    }
+    const getGeneral = async () => {
+        let lang = await getData('language');
+        let unit = await getData('unit');
+        if (lang) {
+            setIsE(lang == 'English');
+        }
+        if (unit) {
+            setIsC(unit == 'Celcius');
+        }
     }
 
     useEffect(() => {
@@ -180,79 +222,46 @@ const MainScreen = (props) => {
         }
     }, [route?.params?.newWeatherData])
 
-
     useEffect(() => {
+        LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+        getGeneral();
         getPreWeather();
-        getUnit();
-        getLanguage();
+        startApp();
+        getAsyncData();
     }, [])
 
     useEffect(() => {
-        LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
-        getAsyncData();
-    }, [route?.params?.cityName, route?.params?.toIndex])
-
-    useEffect(() => {
-        if (ref.current && route?.params?.toIndex && route?.params?.toIndex < weatherLocations.length) {
+        if (ref.current && route?.params?.toIndex != undefined && route?.params?.toIndex < weatherLocations.length) {
             ref.current?.scrollToIndex({
                 index: route?.params?.toIndex,
-                animated: true
+                animated: false
             })
         }
     }, [route?.params?.toIndex])
 
+    // General 
     useEffect(() => {
-        if (route?.params?.unit) {
-            getUnit()
-        }
-
-    }, [route?.params?.unit])
-
-    useEffect(() => {
-        if (route?.params?.language) {
-            getLanguage()
-        }
-
-    }, [route?.params?.unit])
+        setIsC(route?.params?.unit);
+        setIsE(route?.params?.lang);
+    }, [route?.params?.unit, route?.params?.lang])
 
     useEffect(() => {
         getPermisison();
     }, [route?.params?.permission])
 
-    useEffect(() => {
-        fetchWeatherDatas();
-    }, [weatherLocations])
-
-
     if (isFetched == false) {
         return <HomeView></HomeView>
     }
 
-    // if (isFetched == true && weatherDatas.length == 0) {
-    //     return <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-    //         <FontAwesomeIcon icon={faWifi} size={50} color={'#7a7a7a'}></FontAwesomeIcon>
-    //         <Text>Check your internet</Text>
-    //         <TouchableOpacity style={{width: 80, height: 40, backgroundColor: colors.buttonColor, borderRadius: 10, justifyContent: 'center', alignItems: 'center'}} onPress={() => {
-    //             setIsFetched(false);
-    //             getAsyncData()
-    //         }}>
-    //             <Text>Try again</Text>
-    //         </TouchableOpacity>
-    //     </View>
-    // }
-
-
     if (isFetched) {
-        if (canFetch && weatherDatas.length != 0) {
+        if (internet) {
             storeLocationData('weathers', weatherDatas);
-        } else {
-            setWeatherDatas(preWeather);
         }
         return (
-            <View style={{
-                flex: 1, backgroundColor: 'white'
-            }}
-
+            <View 
+                style={{
+                    flex: 1, backgroundColor: 'white'
+                }}
             >
                 <FlatList
                     ref={ref}
@@ -263,7 +272,7 @@ const MainScreen = (props) => {
                     showsHorizontalScrollIndicator
                     initialScrollIndex={index}
                     renderItem={(weatherDataItem) => {
-                        let lang = isEng ? en : vn;
+                        let lang = isE ? en : vn;
                         let fetch_time = new Date(weatherDataItem?.item?.fetch_time);
                         let fetch_day = fetch_time.getDay();
                         let fetch_hour = fetch_time.getHours();
@@ -394,23 +403,33 @@ const MainScreen = (props) => {
                                 },
                             ]
                         }
-
-                        if (current_hour != fetch_hour) {
-                            image_background = (current_weather?.is_day == 1) ? images.image4 : images.image3;
+                        
+                        let is_raining = false;
+                        let temp_var = current_weather?.condition?.text.toLowerCase();
+                        let temp_var2 = (current_weather?.is_day == 1);
+                        if (temp_var.includes("rain")) {
+                            is_raining = true;
+                            image_background = images.image11;
+                            if (!temp_var2) {
+                                image_background = images.image9;
+                            }
+                        } else if (temp_var.includes("overcast")) {
+                            if (temp_var2) {
+                                image_background = images.image10;
+                            }
+                            
+                        } else if (temp_var.includes("cloudy")) {
+                            if (temp_var2) {
+                                image_background = images.image4;
+                            }                
                         }
-
-                        let is_raining = current_weather?.condition?.text.toLowerCase().includes("rain");
-
-                        console.log(i_hour)
-
-
                         return (
                             <View style={{ width: windowWidth }}>
 
                                 {/**------------------------App---------------------------- */}
                                 <ImageBackground source={image_background}
                                     style={{ flex: 1 }}
-                                    resizeMode='stretch'
+                                    resizeMode='cover'
                                 >
 
                                     {/*---------Header---------*/}
@@ -422,7 +441,7 @@ const MainScreen = (props) => {
                                             ...commonStyle1,
                                             paddingHorizontal: 20,
                                         }}>
-                                            <TouchableOpacity onPress={() => { navigate('LocationScreen', { weatherData: weatherDatas, unit: celUnit, lan: isEng }) }}>
+                                            <TouchableOpacity onPress={() => { navigate('LocationScreen', { weatherData: weatherDatas, unit: isC, lang: isE }) }}>
                                                 <FontAwesomeIcon
                                                     icon={faPlus}
                                                     size={fontSizes.iconSize}
@@ -436,7 +455,7 @@ const MainScreen = (props) => {
                                             }}>{weatherDataItem?.item?.location}</Text>
 
                                             {/**-------------Setting selection------------------------ */}
-                                            <TouchableOpacity onPress={() => navigate("SettingScreen")}>
+                                            <TouchableOpacity onPress={() => navigate("SettingScreen", {lang: isE, unit: isC})}>
                                                 <FontAwesomeIcon
                                                     icon={faEllipsisV}
                                                     size={fontSizes.iconSize}
@@ -499,7 +518,7 @@ const MainScreen = (props) => {
                                                 }}>
                                                     <BigTemperature
                                                         currentTemp={current_temperature}
-                                                        unit={celUnit}
+                                                        unit={isC}
                                                     ></BigTemperature>
                                                 </View>
 
@@ -516,14 +535,14 @@ const MainScreen = (props) => {
                                                                 fontSize: fontSizes.h4
                                                             }}
                                                         >
-                                                            {isEng ? current_weather_condition : viText[current_weather_condition.trim().toLowerCase()]}
+                                                            {isE ? current_weather_condition : viText[current_weather_condition.trim().toLowerCase()]}
                                                         </Text>
 
                                                         <View style={{ width: 20 }}></View>
                                                         <Temperature
                                                             highest={max_temperature}
                                                             lowest={min_temperature}
-                                                            unit={celUnit}
+                                                            unit={isC}
                                                             fontSize={fontSizes.h4}></Temperature>
 
                                                     </View>
@@ -579,7 +598,7 @@ const MainScreen = (props) => {
                                                             }}
                                                             data={brief_forcast}
                                                             renderItem={({ item }) => {
-                                                                return <View><WeatherInfoH weatherInfo={item} unit={celUnit} lan={isEng}></WeatherInfoH></View>
+                                                                return <View><WeatherInfoH weatherInfo={item} unit={isC} lan={isE}></WeatherInfoH></View>
                                                             }}
                                                             keyExtractor={item => item.date}
                                                         >
@@ -591,8 +610,8 @@ const MainScreen = (props) => {
                                                                 navigate('UpcomingWeatherScreen', {
                                                                     data: weatherDataItem?.item?.forecastData,
                                                                     background: image_background,
-                                                                    unit: celUnit, day: i_day,
-                                                                    lan: isEng
+                                                                    unit: isC, day: i_day,
+                                                                    lang: isE
                                                                 })
                                                             }
                                                             content={lang[1]}></Button>
@@ -626,7 +645,7 @@ const MainScreen = (props) => {
                                                     {weatherDataItem?.item?.forecastData[i_day]?.hour.map((item, index) => {
                                                         return (<WeatherHourlyV
                                                             key={index}
-                                                            unit={celUnit}
+                                                            unit={isC}
                                                             max={max_temperature}
                                                             temp={item.temp_c}
                                                             hour={item.time}
@@ -716,7 +735,7 @@ const MainScreen = (props) => {
                                                     <FlatList
                                                         data={current_extrainfo}
                                                         renderItem={({ item }) => {
-                                                            if (!celUnit) {
+                                                            if (!isC) {
                                                                 if (item.name == 'Real feel') {
                                                                     item.value = cToF(item.value)
                                                                 }

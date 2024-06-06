@@ -22,7 +22,7 @@ const dayOfWeeksVn = {
 
 const WeatherInfoHorizontal = (props) => {
     let { temp_c, time, condition, daily_chance_of_rain } = props.weatherInfo;
-    let {unit, lan} = props;
+    let {unit, lang} = props;
     let timeOfDay = getTimeOfDay(time);
     let dayOfWeeks = getDayOfWeek(time);
     let rainPos = daily_chance_of_rain;
@@ -43,7 +43,7 @@ const WeatherInfoHorizontal = (props) => {
                     <View style={{ width: 10 }}></View>
                     <Text style={{ ...textStyle, width: 50 }}>{timeOfDay}</Text>
                     <View style={{ width: 10 }}></View>
-                    <Text style={textStyle}>{lan ? condition?.text : viText[condition?.text.trim().toLowerCase()]}</Text>
+                    <Text style={textStyle}>{lang ? condition?.text : viText[condition?.text.trim().toLowerCase()]}</Text>
                 </View>
                 <Text 
                     style={{
@@ -63,7 +63,7 @@ const UpcomingWeatherScreen = (props) => {
     const { navigate } = navigation;
     const { route } = props;
 
-    let [lan, setLan] = useState(route?.params?.lan ? en : vn);
+    let [lan, setLan] = useState(route?.params?.lang ? en : vn);
 
     let weatherData = route.params.data;
     let imageBackground = route.params.background;
@@ -88,7 +88,7 @@ const UpcomingWeatherScreen = (props) => {
             {isModalVisible && <DayInfoScreen isVisible={true} setVisible={setModalVisble} data={weatherInfo} unit={unit}></DayInfoScreen>}
             <View style={{ flex: 1, padding: 10 }}>
                 <TouchableOpacity 
-                    onPress={() => navigate('MainScreen')}
+                    onPress={() => navigate('MainScreen', {lang: route?.params?.lang, unit: route?.params?.unit})}
                     style={{ height: 40 }}
                 >
                     <FontAwesomeIcon icon={faArrowLeft} size={26} color={colors.textColor}></FontAwesomeIcon>
@@ -207,7 +207,7 @@ const UpcomingWeatherScreen = (props) => {
                                                 }} 
                                                 weatherInfo={item}
                                                 unit = {unit} astro={weather.astro}
-                                                lan={route?.params?.lan}
+                                                lang={route?.params?.lang}
                                             ></WeatherInfoHorizontal>
                                         )
                                     }}
