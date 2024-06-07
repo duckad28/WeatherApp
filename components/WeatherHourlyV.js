@@ -7,9 +7,10 @@ import {colors, fontSizes, images} from '../constants';
 const WeatherHourlyV = (props) => {
     let {unit, temp, hour} = props;
     let {max} = props;
-    let {now} = props;
+    let {now, lang} = props;
     let dMax = Math.round(max - temp);
-    hour = now ? "now" : toHour(hour);
+    let moment = lang ? "now" : "hiện tại";
+    hour = now ? moment : toHour(hour);
     let {icon} = props;
     
     return (
@@ -27,7 +28,7 @@ const WeatherHourlyV = (props) => {
                 <Text style={{ color: colors.textColor, fontSize: 20, marginTop: dMax*5}}>{unit ? Math.round(temp) : cToF(temp)}°</Text>
             </View>
             <Image source={images[getWeatherIcon(icon)]} style={{ tintColor: '#ffffff', width: 20, height: 16, justifyContent: 'center' }}></Image>
-            <Text style={textStyle}>{now ? "now" : hour}</Text>
+            <Text style={textStyle}>{hour}</Text>
         </View>
     )
 }

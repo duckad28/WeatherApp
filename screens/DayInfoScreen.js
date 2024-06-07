@@ -8,13 +8,46 @@ import {
     StyleSheet,
     FlatList, Image
 } from 'react-native';
-import { colors, fontSizes, images } from '../constants';
+import { colors, fontSizes, images, viText } from '../constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
 import { ExtraInfoItem } from '../components';
 import { cToF, getWeatherIcon } from '../utilities';
 
 const dayOfWeeks = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const dayOfWeeksVn = {
+    'Monday' : 'Thứ hai',
+    'Tuesday' : 'Thứ ba',
+    'Wednesday' : 'Thứ tư',
+    'Thursday' : 'Thứ năm',
+    'Friday' : 'Thứ sáu',
+    'Saturday' : 'Thứ bảy',
+    'Sunday' : 'Chủ nhật',
+    'Today' : 'Hôm nay'
+}
+
+const aqiEn = [
+    'No value',
+    'Excellent',
+    'Fair',
+    'Poor',
+    'Unhealthy',
+    'Very Unhealthy',
+    'Dangerous',
+]
+const aqiVn = [
+    'Không có dữ liệu',
+    'Tuyệt vời',
+    'Vừa phải',
+    'Xấu',
+    'Có hại',
+    'Rất có hại',
+    'Nguy hiểm',
+]
+
+
+const en = [ 'Rain probablity','RealFeel','Humidity','Cloud','Wind speed','Wind direction','Wind gust','UV','AQI','Rise', 'Set', 'hrs', 'mins'];
+const vn = [ 'Khả năng có mưa','Nhiệt độ cảm nhận','Độ ẩm','Mây','Tốc độ gió','Hướng gió','Gió giật','UV','AQI','Mọc', 'Lặn', 'giờ', 'phút'];
 const getDayOfWeek = (day) => {
     let t = new Date(day);
     return dayOfWeeks[t.getDay()];
@@ -59,43 +92,47 @@ const getTimeDuration = (rise, set) => {
 
 const DayInfoScreen = (props) => {
     let weatherData = props.data;
+    let {route} = props;
+    let {lang} = props;
+    let lan = lang ? en : vn;
+    let aqi = lang ? aqiEn : aqiVn;
     let { isVisible, setVisible, unit } = props;
     const dayInfoData = [
         {
-            name: 'Rain probablity',
+            name: lan[0],
             value: Math.round(weatherData?.chance_of_rain) + "%"
         },
         {
-            name: 'RealFeel',
-            value: unit ? Math.round(weatherData?.feelslike_c) : cToF(weatherData?.feelslike_c) + "°"
+            name: lan[1],
+            value: (unit ? Math.round(weatherData?.feelslike_c) : cToF(weatherData?.feelslike_c)) + "°"
         },
         {
-            name: 'Humidity',
+            name: lan[2],
             value: weatherData?.humidity + "%"
         },
         {
-            name: 'Cloud',
+            name: lan[3],
             value: weatherData?.cloud + "%"
         },
         {
-            name: 'Wind speed',
-            value: weatherData?.wind_kph + "kph"
+            name: lan[4],
+            value: weatherData?.wind_kph + "km/h"
         },
         {
-            name: 'Wind degree',
-            value: weatherData?.wind_degree
+            name: lan[5],
+            value: weatherData?.wind_dir
         },
         {
-            name: 'Wind gust',
-            value: weatherData?.gust_kph + "kph"
+            name: lan[6],
+            value: weatherData?.gust_kph + "km/h"
         },
         {
-            name: 'UV',
+            name: lan[7],
             value: weatherData?.uv
         },
         {
-            name: 'AQI',
-            value: weatherData?.air_quality["us-epa-index"]
+            name: lan[8],
+            value: aqi[weatherData?.air_quality["us-epa-index"]]
         }
     ]
 
@@ -107,6 +144,9 @@ const DayInfoScreen = (props) => {
     let moonset = weatherData?.astro?.moonset;
     let sunDur = getTimeDuration(sunrise, sunset);
     let moonDur = getTimeDuration(moonrise, moonset);
+
+    let day = getDayOfWeek(weatherData?.time);
+    let cond = weatherData?.condition?.text;
     return (
         <Modal visible={isVisible} transparent={true} animationType='slide'>
             <View style={{
@@ -140,7 +180,7 @@ const DayInfoScreen = (props) => {
                         justifyContent: 'center',
                         alignItems: 'center'
                     }}>
-                        <Text style={headerStyle}>{getDayOfWeek(weatherData?.time)}</Text>
+                        <Text style={headerStyle}>{lang ? day : dayOfWeeksVn[day]}</Text>
                         <Text style={normalTextStyle}>{weatherData?.time}</Text>
                     </View>
                     <View style={{
@@ -149,7 +189,7 @@ const DayInfoScreen = (props) => {
                         marginTop: 20
                     }}>
                         <Temperature temp={Math.round(weatherData?.temp_c)} condition={weatherData?.condition} fontSize={fontSizes.h1} unit={unit}></Temperature>
-                        <Text>{weatherData?.condition?.text}</Text>
+                        <Text>{lang ? cond : viText[cond.trim().toLowerCase()]}</Text>
                     </View>
                     <ScrollView showsVerticalScrollIndicator={false}>
                         <FlatList
@@ -175,16 +215,16 @@ const DayInfoScreen = (props) => {
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <FontAwesomeIcon icon={faSun} size={24}></FontAwesomeIcon>
                                     <View>
-                                        <Text>{sunDur.hours} hrs</Text>
-                                        <Text>{sunDur.minutes} mins</Text>
+                                        <Text>{sunDur.hours + " " + lan[11]}</Text>
+                                        <Text>{sunDur.minutes + " " + lan[12]}</Text>
                                     </View>
                                 </View>
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text>Rise</Text>
+                                    <Text>{lan[9]}</Text>
                                     <Text>{sunrise}</Text>
                                 </View>
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text>Set</Text>
+                                    <Text>{lan[10]}</Text>
                                     <Text>{sunset}</Text>
                                 </View>
                             </View>
@@ -196,16 +236,16 @@ const DayInfoScreen = (props) => {
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <FontAwesomeIcon icon={faMoon} size={24}></FontAwesomeIcon>
                                     <View>
-                                        <Text>{moonDur.hours} hrs</Text>
-                                        <Text>{moonDur.minutes} mins</Text>
+                                        <Text>{moonDur.hours + " " + lan[11]}</Text>
+                                        <Text>{moonDur.minutes + " " + lan[12]}</Text>
                                     </View>
                                 </View>
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text>Rise</Text>
+                                    <Text>{lan[9]}</Text>
                                     <Text>{moonrise}</Text>
                                 </View>
                                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text>Set</Text>
+                                    <Text>{lan[10]}</Text>
                                     <Text>{moonset}</Text>
                                 </View>
                             </View>

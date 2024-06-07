@@ -1,6 +1,6 @@
-import React, {useState, useEffect, Component} from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
     MainScreen,
     LocationScreen,
@@ -11,7 +11,8 @@ import {
     HomeView,
 } from '../screens';
 import messaging from '@react-native-firebase/messaging';
-import {PermissionsAndroid} from 'react-native';
+import { PERMISSIONS, request } from 'react-native-permissions';
+import { PermissionsAndroid } from 'react-native';
 import { Linking, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getData, storeData } from '../utilities/asyncStorage';
@@ -28,13 +29,14 @@ const App = () => {
     useEffect(() => {
         getFcmToken();
       }, []);
-    
+
     useEffect(() => {
         const unsubscribe = registerListenerWithFCM();
         return unsubscribe;
       }, []);
+
     return <NavigationContainer>
-        <Stack.Navigator screenOptions={{headerShown: false}}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name='MainScreen' component={MainScreen}></Stack.Screen>
             <Stack.Screen name='LocationScreen' component={LocationScreen}></Stack.Screen>
             <Stack.Screen name='UpcomingWeatherScreen' component={UpcomingWeatherScreen}></Stack.Screen>

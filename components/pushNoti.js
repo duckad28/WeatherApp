@@ -1,10 +1,12 @@
-import notifee, { EventType } from '@notifee/react-native';
+import notifee, { EventType, AndroidStyle } from '@notifee/react-native';
 import messaging from '@react-native-firebase/messaging';
 import { PERMISSIONS, request } from 'react-native-permissions';
 import { Linking, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocationData } from '../utilities/locationStorage';
 import { getData, storeData } from '../utilities/asyncStorage';
+import { getWeatherIcon } from '../utilities';
+
 
 export const sendNotification = async () => {
 
@@ -158,18 +160,34 @@ async function onDisplayNotification(title, body, data) {
     name: 'Default Channel',
   });
 
-  let a = await getData('city');
+  let noti = await getLocationData('noti');
   // Display a notification
-  await notifee.displayNotification({
-    title: a,
-    body: a,
-    data: data,
-    android: {
-      channelId,
-      // pressAction is needed if you want the notification to open the app when pressed
-      pressAction: {
-        id: 'default',
+  if (noti) {
+     await notifee.displayNotification({
+      title: `<p style="color: #000000;"><b>${noti?.location}</span></p></b></p>`,
+      subtitle: '&#129395;',
+      body:
+        `<p>Thời tiết ngày hôm nay: ${noti?.forecastData[0]?.day?.condition?.text}</p>
+        <p>Nhiệt độ cao nhất : ${Math.round(noti?.forecastData[0]?.day?.maxtemp_c)}</p>
+        <p>Nhiệt độ thấp nhất : ${Math.round(noti?.forecastData[0]?.day?.mintemp_c)}</p>
+        <p>Khả năng có mưa : ${Math.round(noti?.forecastData[0]?.day["daily_chance_of_rain"])}</p>`,
+      android: {
+        channelId,
+        color: '#4caf50',
+        actions: [
+          {
+            title: '<b>Xem thêm</b>',
+            pressAction: { id: 'Xem thêm' },
+          },
+          {
+            title: '<p style="color: #f44336;"><b>Đóng</b></p>',
+            pressAction: { id: 'Đóng' },
+          },
+        ],
+        style: { type: AndroidStyle.BIGTEXT, text: "h"},
+        largeIcon: getWeatherIcon(noti?.forecastData[0]?.day?.condition?.icon)
       },
-    },
-  });
+    });
+  }
+ 
 }

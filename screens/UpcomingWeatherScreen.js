@@ -64,6 +64,7 @@ const UpcomingWeatherScreen = (props) => {
     const { route } = props;
 
     let [lan, setLan] = useState(route?.params?.lang ? en : vn);
+    let tabButtonSize = route?.params?.lang ? tabButtonSizeEn : tabButtonSizeVn;
 
     let weatherData = route.params.data;
     let imageBackground = route.params.background;
@@ -85,7 +86,7 @@ const UpcomingWeatherScreen = (props) => {
     return (
 
         <ImageBackground source={imageBackground} style={{ flex: 1 }}>
-            {isModalVisible && <DayInfoScreen isVisible={true} setVisible={setModalVisble} data={weatherInfo} unit={unit}></DayInfoScreen>}
+            {isModalVisible && <DayInfoScreen isVisible={true} setVisible={setModalVisble} data={weatherInfo} unit={unit} lang={route?.params?.lang}></DayInfoScreen>}
             <View style={{ flex: 1, padding: 10 }}>
                 <TouchableOpacity 
                     onPress={() => navigate('MainScreen', {lang: route?.params?.lang, unit: route?.params?.unit})}
@@ -103,15 +104,13 @@ const UpcomingWeatherScreen = (props) => {
                     <View style={wrapperStyle}>
                         <TouchableOpacity onPress={
                             () => {
-                                return [
                                     setGraph(true),
                                     setList(false)
-                                ]
                             }
                         }
                             style={{
                                 backgroundColor: isGraph ? colors.buttonColor : null,
-                                borderRadius: 10, height: 40, width: 60,
+                                ...tabButtonSize,
                                 justifyContent: 'center', alignItems: 'center'
                             }}>
 
@@ -130,15 +129,13 @@ const UpcomingWeatherScreen = (props) => {
 
                         <TouchableOpacity onPress={
                             () => {
-                                return [
                                     setGraph(false),
                                     setList(true)
-                                ]
                             }
                         }
                             style={{
                                 backgroundColor: isList ? colors.buttonColor : null,
-                                borderRadius: 10, height: 40, width: 60,
+                                ...tabButtonSize,
                                 justifyContent: 'center', alignItems: 'center'
                             }}>
 
@@ -169,6 +166,7 @@ const UpcomingWeatherScreen = (props) => {
                                             max={max}
                                             min={min}
                                             today={day==index}
+                                            lang={route?.params?.lang}
                                         ></WeatherInfoV>
                             }}
                             keyExtractor={item => item.date}>
@@ -187,7 +185,7 @@ const UpcomingWeatherScreen = (props) => {
                             return (
                                 <View key = {index} style={{ borderWidth: 1, marginBottom: 40, paddingHorizontal: 5, borderColor: 'white'}}>
                                     <View style={{ paddingVertical: 10, borderBottomWidth: 1, borderColor: 'white', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <Text style={{ fontSize: fontSizes.h4, color: colors.textColor, textAlignVertical: 'center' }}>{route?.params?.lan ? dayName : dayOfWeeksVn[dayName]}</Text>
+                                            <Text style={{ fontSize: fontSizes.h4, color: colors.textColor, textAlignVertical: 'center' }}>{route?.params?.lang ? dayName : dayOfWeeksVn[dayName]}</Text>
                                             <Text style={{ fontSize: fontSizes.h4, color: colors.textColor, textAlignVertical: 'center' }}>{weather?.date}</Text>
                                     </View>
                                     <FlatList key={index} data={weather?.hour}
@@ -232,7 +230,16 @@ const wrapperStyle = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
 })
-
+const tabButtonSizeEn = StyleSheet.create({
+    height: 40,
+    width: 60,
+    borderRadius: 10
+})
+const tabButtonSizeVn = StyleSheet.create({
+    height: 50,
+    width: 90,
+    borderRadius: 20
+})
 const textStyle = StyleSheet.create({
     color: colors.textColor, fontSize: fontSizes.h5, textAlignVertical: 'center'
 })

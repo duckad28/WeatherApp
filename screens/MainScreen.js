@@ -33,8 +33,8 @@ import NetInfo from "@react-native-community/netinfo";
 
 import Rain from 'rainy-background-reactnative';
 
-const en = ['Allow Weather to access your location', 'Daily Forecast', '24 Hours Forecast', 'Sun', 'Moon', 'Rise', 'Set'];
-const vn = ['Cho phép truy cập vào vị trí của bạn', 'Dự báo theo ngày', 'Dự báo thời tiết trong ngày', 'Mặt trời', 'Mặt trăng',  'Mọc', 'Lặn'];
+const en = ['Allow Weather to access your location', 'Daily Forecast', '24 Hours Forecast', 'Sun', 'Moon', 'Rise', 'Set', 'Humidity', 'Pressure', 'Real feel'];
+const vn = ['Cho phép truy cập vào vị trí của bạn', 'Dự báo theo ngày', 'Dự báo thời tiết trong ngày', 'Mặt trời', 'Mặt trăng',  'Mọc', 'Lặn', 'Độ ẩm', 'Áp suất', 'Cảm nhận'];
 
 
 
@@ -195,7 +195,7 @@ const MainScreen = (props) => {
     const getPreWeather = async () => {
         let weathers = await getLocationData('weathers');
         if (weathers && weathers.length > 0) {
-            alert(weathers[0]?.currentData?.temp_c)
+            console.log("pre" + weathers[0]?.location)
             setPreWeather(weathers);
             setWeatherDatas(weathers);
         }
@@ -256,6 +256,7 @@ const MainScreen = (props) => {
     if (isFetched) {
         if (internet) {
             storeLocationData('weathers', weatherDatas);
+            storeLocationData('noti', weatherDatas[0]);
         }
         return (
             <View 
@@ -285,7 +286,6 @@ const MainScreen = (props) => {
                         let i_day = 0;
                         let i_hour = local_hour;
                         let current_weather = weatherDataItem?.item?.currentData;
-                        console.log(fetch_hour)
                         if (fetch_day != current_day || fetch_hour != current_hour) {
                             i_day = (current_day - fetch_day);
                             i_hour = (current_hour - fetch_hour);
@@ -331,11 +331,11 @@ const MainScreen = (props) => {
 
                         let current_extrainfo = [
                             {
-                                name: 'Humidity',
+                                name: lang[7],
                                 value: Math.round(current_weather?.humidity) + "%"
                             },
                             {
-                                name: 'Pressure',
+                                name: lang[8],
                                 value: Math.round(current_weather?.pressure_mb) + "hPa"
                             },
                             {
@@ -343,8 +343,8 @@ const MainScreen = (props) => {
                                 value: Math.round(current_weather?.uv)
                             },
                             {
-                                name: 'Real feel',
-                                value: Math.round(current_weather?.feelslike_c)
+                                name: lang[9],
+                                value: (isC ? Math.round(current_weather?.feelslike_c) : cToF(current_weather?.feelslike_c)) + "°"
                             }
                         ];
 
@@ -557,7 +557,7 @@ const MainScreen = (props) => {
                                                             marginHorizontal: 30,
 
                                                         }}>
-                                                            <SmallButton content={'AQI'} onPress={() => navigate('AqiScreen', { data: weatherDataItem?.item?.aqiData })}></SmallButton>
+                                                            <SmallButton content={'AQI'} onPress={() => navigate('AqiScreen', { data: weatherDataItem?.item?.aqiData, lang: isE, imageBackground: image_background })}></SmallButton>
                                                             <View style={{
                                                                 ...commonStyle2,
                                                                 paddingHorizontal: 10,
@@ -633,7 +633,7 @@ const MainScreen = (props) => {
                                                     marginLeft: 10,
                                                     marginVertical: 10,
                                                     flexDirection: 'row',
-                                                    alignItems: 'center'
+                                                    alignItems: 'center',
                                                 }}>
                                                     <FontAwesomeIcon icon={faClock} color={colors.textColor}></FontAwesomeIcon>
                                                     <View style={{ width: 10 }}></View>
@@ -651,6 +651,7 @@ const MainScreen = (props) => {
                                                             hour={item.time}
                                                             icon={item.condition.icon}
                                                             now={i_hour == index}
+                                                            lang={isE}
                                                         >
                                                         </WeatherHourlyV>)
                                                     })}

@@ -186,8 +186,8 @@ const normalTextStyle = StyleSheet.create({
     fontSize: fontSizes.h5,
     color: colors.fadeBlackTextColor,
     fontWeight: '500',
-    textAlignVertical: 'center',
-    margin: 10
+    textAlignVertical: 'top',
+    marginHorizontal: 10
 })
 const generalStyle = StyleSheet.create({
     flexDirection: 'row', 

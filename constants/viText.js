@@ -37,6 +37,7 @@ export default {
     'Ice pellets': 'Mưa đá',
     'Light rain shower': 'Mưa rào nhẹ',
     'Moderate or heavy rain shower': 'Mưa rào vừa hoặc nặng hạt',
+    'moderate or heavy rain with thunder': 'Mưa rào vừa hoặc nặng hạt với sấm sét',
     'Torrential rain shower': 'Mưa rào xối xả',
     'Light sleet showers': 'Mưa tuyết rào nhẹ',
     'Moderate or heavy sleet showers': 'Mưa tuyết rào vừa hoặc nặng hạt',

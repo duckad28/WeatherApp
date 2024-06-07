@@ -7,9 +7,10 @@ import { faTint } from '@fortawesome/free-solid-svg-icons';
 
 const WeatherInfoV = (props) => {
     let {day, date} = props.weatherInfo;
-    let {unit} = props;
+    let {unit, lang} = props;
     let {today} = props;
-    let dayOfWeeks = today ? "Today" : getDayOfWeek(date);
+    let d = lang ? "Today" : "Hôm nay";
+    let dayOfWeeks = today ? d : getDayOfWeek(date);
     let highestTemp = Math.round(day.maxtemp_c);
     let lowestTemp = Math.round(day.mintemp_c);
     let rainPos = day?.daily_chance_of_rain;
