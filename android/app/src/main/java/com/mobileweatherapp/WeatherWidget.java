@@ -50,7 +50,7 @@ public class WeatherWidget extends AppWidgetProvider {
 //        imgFromApi.setDrawingCacheEnabled(true);
 //        imgFromApi.buildDrawingCache();
 //        Bitmap bitmap = imgFromApi.getDrawingCache();
-        views.setImageViewResource(R.id.imageView, R.drawable.img);
+        views.setImageViewResource(R.id.imageView, R.drawable.overcast);
 //Thay doi textview dia diem//
         //views.setTextViewText(R.id.place,);
 //Thay doi textview thoi gian//
@@ -59,9 +59,7 @@ public class WeatherWidget extends AppWidgetProvider {
                         R.string.time, timeString));
         //Toast.makeText(context, timeString, Toast.LENGTH_SHORT).show();
 //Thay doi textview trang thai, nhiet do//
-        views.setTextViewText(R.id.conditontext,
-                context.getResources().getString(
-                        R.string.text_condition, tvCondition));
+        //views.setTextViewText(R.id.conditontext, context.getResources().getString(R.string.text_condition, tvCondition));
         views.setTextViewText(R.id.temperature,
                 context.getResources().getString(
                         R.string.text_temperature, tvTempC) + "°C");
@@ -84,6 +82,7 @@ public class WeatherWidget extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.imageView, pendingOpenApp);
         views.setOnClickPendingIntent(R.id.humidity, pendingOpenApp);
         views.setOnClickPendingIntent(R.id.temperature, pendingOpenApp);
+        views.setOnClickPendingIntent(R.id.layout, pendingOpenApp);
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
     @Override

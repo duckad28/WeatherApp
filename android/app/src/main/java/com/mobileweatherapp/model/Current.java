@@ -1,23 +1,23 @@
 package com.mobileweatherapp.model;
 
 public class Current {
-    private float temp_c;
-    private float humidity;
+    private int temp_c;
+    private int humidity;
     private Condition condition;
 
-    public float getTemp_c() {
+    public int getTemp_c() {
         return temp_c;
     }
 
-    public void setTemp_c(float temp_c) {
+    public void setTemp_c(int temp_c) {
         this.temp_c = temp_c;
     }
 
-    public float getHumidity() {
+    public int getHumidity() {
         return humidity;
     }
 
-    public void setHumidity(float humidity) {
+    public void setHumidity(int humidity) {
         this.humidity = humidity;
     }
 
