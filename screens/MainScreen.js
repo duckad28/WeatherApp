@@ -165,9 +165,7 @@ const MainScreen = (props) => {
             }
         }
     }
-
-    const text = 'ThaiBinh';
-    const handleSendWg = async () => {
+    const handleSendWg = async (text) => {
         SharedWidget.set(JSON.stringify({text}));
         console.log(JSON.stringify({text}));
     };
@@ -234,7 +232,6 @@ const MainScreen = (props) => {
         getPreWeather();
         startApp();
         getAsyncData();
-        handleSendWg();
     }, [])
 
     useEffect(() => {
@@ -264,6 +261,15 @@ const MainScreen = (props) => {
         if (internet) {
             storeLocationData('weathers', weatherDatas);
             storeLocationData('noti', weatherDatas[0]);
+            let text = weatherDatas[0]?.location;
+            let obj = {
+                city: 'Ha Noi',
+                lang: isE,
+                unit: isC
+            }
+            if (text) {
+                handleSendWg(text);
+            }
         }
         return (
             <View 
