@@ -13,6 +13,7 @@ import {
     Animated,
     Dimensions,
     LogBox,
+    NativeModules,
     Platform
 } from 'react-native';
 
@@ -24,6 +25,7 @@ import { faCircle, faClock, faEllipsisV, faLocationArrow, faMoon, faPlus, faSun,
 import { images, colors, fontSizes, viText } from '../constants';
 import { getDayOfWeek, getWeatherIcon, cToF } from '../utilities';
 
+import SharedGroupPreferences from 'react-native-shared-group-preferences';
 import GeoLocation from "@react-native-community/geolocation";
 import { fetchForecast, fetchGeo } from '../repositories/fetchData';
 import { debounce, size } from 'lodash';
@@ -35,8 +37,7 @@ import Rain from 'rainy-background-reactnative';
 
 const en = ['Allow Weather to access your location', 'Daily Forecast', '24 Hours Forecast', 'Sun', 'Moon', 'Rise', 'Set', 'Humidity', 'Pressure', 'Real feel'];
 const vn = ['Cho phép truy cập vào vị trí của bạn', 'Dự báo theo ngày', 'Dự báo thời tiết trong ngày', 'Mặt trời', 'Mặt trăng',  'Mọc', 'Lặn', 'Độ ẩm', 'Áp suất', 'Cảm nhận'];
-
-
+const SharedWidget = NativeModules.SharedWidget;
 
 const MainScreen = (props) => {
     const { navigation } = props;
@@ -85,7 +86,6 @@ const MainScreen = (props) => {
     };
 
     // Check internet
-    
 
     //Lay dia chi chi tiet tu toa do
     const reverseGeoCode = async ({ lat, long }) => {
@@ -166,6 +166,12 @@ const MainScreen = (props) => {
         }
     }
 
+    const text = 'ThaiBinh';
+    const handleSendWg = async () => {
+        SharedWidget.set(JSON.stringify({text}));
+        console.log(JSON.stringify({text}));
+    };
+
     // Khởi tạo app
     const startApp = async () => {
         await delay(2000)
@@ -228,6 +234,7 @@ const MainScreen = (props) => {
         getPreWeather();
         startApp();
         getAsyncData();
+        handleSendWg();
     }, [])
 
     useEffect(() => {

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
@@ -18,10 +19,13 @@ import com.bumptech.glide.Glide;
 import com.mobileweatherapp.api.ApiService;
 import com.mobileweatherapp.model.Currency;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -41,16 +45,24 @@ public class WeatherWidget extends AppWidgetProvider {
     @SuppressLint("StringFormatInvalid")
     static void updateAppWidget(Context context,
                                 AppWidgetManager appWidgetManager,
-                                int appWidgetId, String tvTempC, String tvHumidity, String tvCondition) {
+                                int appWidgetId) {
 
+        try {
         String timeString =
                 DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date());
+        SharedPreferences sharedPref = context.getSharedPreferences("DATA", Context.MODE_PRIVATE);
+        String appString = sharedPref.getString("appData", "{\"text\":'no data'}");
+        JSONObject appData = new JSONObject(appString);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.weather_widget);
-
+        views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_condition, appData.getString("text")));
 //        imgFromApi.setDrawingCacheEnabled(true);
 //        imgFromApi.buildDrawingCache();
 //        Bitmap bitmap = imgFromApi.getDrawingCache();
-        views.setImageViewResource(R.id.imageView, R.drawable.overcast);
+//        if(Objects.equals(tvCondition, "Partly cloudy")){
+            views.setImageViewResource(R.id.imageView, R.drawable.overcast);
+//        } else {
+//            views.setImageViewResource(R.id.imageView, R.drawable.partly_cloudy_night);
+//        }
 //Thay doi textview dia diem//
         //views.setTextViewText(R.id.place,);
 //Thay doi textview thoi gian//
@@ -64,9 +76,8 @@ public class WeatherWidget extends AppWidgetProvider {
                 context.getResources().getString(
                         R.string.text_temperature, tvTempC) + "°C");
 //Thay doi textview do am//
-        views.setTextViewText(R.id.humidity,
-                context.getResources().getString(
-                        R.string.text_humidity, tvHumidity)+"%");
+        views.setTextViewText(R.id.humidity,"Humidity: "+
+                context.getResources().getString(R.string.text_humidity, tvHumidity)+"%");
         Intent intentUpdate = new Intent(context, WeatherWidget.class);
         intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
         int[] idArray = new int[]{appWidgetId};
@@ -84,12 +95,15 @@ public class WeatherWidget extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.temperature, pendingOpenApp);
         views.setOnClickPendingIntent(R.id.layout, pendingOpenApp);
         appWidgetManager.updateAppWidget(appWidgetId, views);
+    }catch (JSONException e) {
+        e.printStackTrace();
+    }
     }
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
             callApi(context);
-            updateAppWidget(context, appWidgetManager, appWidgetId, tvTempC, tvHumidity, tvCondition);
+            updateAppWidget(context, appWidgetManager, appWidgetId);
             Toast.makeText(context, "Widget has been updated! ", Toast.LENGTH_SHORT).show();
         }
     }
@@ -103,8 +117,8 @@ public class WeatherWidget extends AppWidgetProvider {
 
                 Currency currency = response.body();
                 if(currency != null) {
-                    tvTempC =  String.valueOf(currency.getCurrent().getTemp_c());
-                    tvHumidity = String.valueOf(currency.getCurrent().getHumidity());
+                    tvTempC =  String.valueOf(Math.round(currency.getCurrent().getTemp_c()));
+                    tvHumidity = String.valueOf(Math.round(currency.getCurrent().getHumidity()));
                     tvCondition = String.valueOf(currency.getCurrent().getCondition().getText());
                     //Glide.with(context).load("https:" + currency.getCurrent().getCondition().getIcon()).into(imgFromApi);
                 }
