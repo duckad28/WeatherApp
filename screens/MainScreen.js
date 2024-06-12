@@ -191,8 +191,8 @@ const MainScreen = (props) => {
                   }
                 });
               }
-            
-        }   
+
+        }
     }
 
     // Lấy dữ liệu các địa điểm được lưu
@@ -243,7 +243,7 @@ const MainScreen = (props) => {
         }
     }, [route?.params?.toIndex])
 
-    // General 
+    // General
     useEffect(() => {
         setIsC(route?.params?.unit);
         setIsE(route?.params?.lang);

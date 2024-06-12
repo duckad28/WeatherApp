@@ -54,17 +54,10 @@ public class WeatherWidget extends AppWidgetProvider {
         String appString = sharedPref.getString("appData", "{\"text\":'no data'}");
         JSONObject appData = new JSONObject(appString);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.weather_widget);
+//Thay doi textview dia diem
         views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_condition, appData.getString("text")));
-//        imgFromApi.setDrawingCacheEnabled(true);
-//        imgFromApi.buildDrawingCache();
-//        Bitmap bitmap = imgFromApi.getDrawingCache();
-//        if(Objects.equals(tvCondition, "Partly cloudy")){
-            views.setImageViewResource(R.id.imageView, R.drawable.overcast);
-//        } else {
-//            views.setImageViewResource(R.id.imageView, R.drawable.partly_cloudy_night);
-//        }
-//Thay doi textview dia diem//
-        //views.setTextViewText(R.id.place,);
+        int imgId = setImg(tvCondition);
+        views.setImageViewResource(R.id.imageView, imgId);
 //Thay doi textview thoi gian//
         views.setTextViewText(R.id.time_update,
                 context.getResources().getString(
@@ -104,7 +97,7 @@ public class WeatherWidget extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             callApi(context);
             updateAppWidget(context, appWidgetManager, appWidgetId);
-            Toast.makeText(context, "Widget has been updated! ", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, "Widget has been updated! ", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -130,5 +123,20 @@ public class WeatherWidget extends AppWidgetProvider {
                 //Toast.makeText(context, "Call API error! ", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    static int setImg(String condition){
+        int idImg;
+        condition = tvCondition;
+        if(Objects.equals(tvCondition, "Partly cloudy")){
+            idImg = R.drawable.overcast;
+        } else if (Objects.equals(tvCondition, "Moderate or heavy rain with thunder")) {
+            idImg = R.drawable.moderate_or_heavy_rain_with_thunder;
+        } else if (Objects.equals(tvCondition, "Patchy light rain with thunder")) {
+            idImg = R.drawable.patchy_light_rain_with_thunder_day;
+        } else {
+            idImg = R.drawable.partly_cloudy_night;
+        }
+        return idImg;
     }
 }
