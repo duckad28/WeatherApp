@@ -39,6 +39,7 @@ public class WeatherWidget extends AppWidgetProvider {
     private static String tvTempC;
     private static String tvHumidity;
     private static String tvCondition;
+    private static int isDay;
     private static ImageView imgFromApi;
 
 
@@ -64,7 +65,7 @@ public class WeatherWidget extends AppWidgetProvider {
                         R.string.time, timeString));
         //Toast.makeText(context, timeString, Toast.LENGTH_SHORT).show();
 //Thay doi textview trang thai, nhiet do//
-        //views.setTextViewText(R.id.conditontext, context.getResources().getString(R.string.text_condition, tvCondition));
+        views.setTextViewText(R.id.condition, context.getResources().getString(R.string.text_condition, tvCondition));
         views.setTextViewText(R.id.temperature,
                 context.getResources().getString(
                         R.string.text_temperature, tvTempC) + "°C");
@@ -110,6 +111,7 @@ public class WeatherWidget extends AppWidgetProvider {
 
                 Currency currency = response.body();
                 if(currency != null) {
+                    isDay = Integer.parseInt(String.valueOf(currency.getCurrent().getIs_day()));
                     tvTempC =  String.valueOf(Math.round(currency.getCurrent().getTemp_c()));
                     tvHumidity = String.valueOf(Math.round(currency.getCurrent().getHumidity()));
                     tvCondition = String.valueOf(currency.getCurrent().getCondition().getText());
@@ -128,14 +130,40 @@ public class WeatherWidget extends AppWidgetProvider {
     static int setImg(String condition){
         int idImg;
         condition = tvCondition;
-        if(Objects.equals(tvCondition, "Partly cloudy")){
-            idImg = R.drawable.overcast;
-        } else if (Objects.equals(tvCondition, "Moderate or heavy rain with thunder")) {
-            idImg = R.drawable.moderate_or_heavy_rain_with_thunder;
-        } else if (Objects.equals(tvCondition, "Patchy light rain with thunder")) {
-            idImg = R.drawable.patchy_light_rain_with_thunder_day;
+        if(isDay==1){
+            if(Objects.equals(tvCondition, "Partly cloudy")){
+                idImg = R.drawable.partly_cloudy_day;
+            } else if (Objects.equals(tvCondition, "Moderate or heavy rain with thunder")) {
+                idImg = R.drawable.moderate_or_heavy_rain_with_thunder;
+            } else if (Objects.equals(tvCondition, "Patchy light rain with thunder")) {
+                idImg = R.drawable.patchy_light_rain_with_thunder_day;
+            } else if (Objects.equals(tvCondition, "Clear")){
+                idImg = R.drawable.clear_day;
+            } else if (Objects.equals(tvCondition, "Light rain shower")){
+                idImg = R.drawable.light_rain_shower_day;
+            } else if (Objects.equals(tvCondition, "Sunny")){
+                idImg = R.drawable.sunny;
+            } else if (Objects.equals(tvCondition, "Patchy rain nearby")){
+                idImg = R.drawable.patchy_rain_nearby;
+            } else {
+                idImg = R.drawable.overcast;
+            }
         } else {
-            idImg = R.drawable.partly_cloudy_night;
+            if(Objects.equals(tvCondition, "Partly cloudy")){
+                idImg = R.drawable.partly_cloudy_night;
+            } else if (Objects.equals(tvCondition, "Moderate or heavy rain with thunder")) {
+                idImg = R.drawable.moderate_or_heavy_rain_with_thunder;
+            } else if (Objects.equals(tvCondition, "Patchy light rain with thunder")) {
+                idImg = R.drawable.patchy_light_rain_with_thunder_night;
+            } else if (Objects.equals(tvCondition, "Clear")){
+                idImg = R.drawable.clear_night;
+            } else if (Objects.equals(tvCondition, "Light rain shower")){
+                idImg = R.drawable.light_rain_shower_night;
+            } else if (Objects.equals(tvCondition, "Patchy rain nearby")){
+                idImg = R.drawable.light_rain_shower_night;
+            } else {
+                idImg = R.drawable.overcast;
+            }
         }
         return idImg;
     }
