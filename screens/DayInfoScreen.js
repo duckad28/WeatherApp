@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { colors, fontSizes, images, viText } from '../constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
+import { faClose, faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
 import { ExtraInfoItem } from '../components';
 import { cToF, getWeatherIcon } from '../utilities';
 

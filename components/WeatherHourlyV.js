@@ -9,6 +9,7 @@ const WeatherHourlyV = (props) => {
     let {max} = props;
     let {now, lang} = props;
     let dMax = Math.round(max - temp);
+    dMax = Math.max(0, dMax)
     let moment = lang ? "now" : "hiện tại";
     hour = now ? moment : toHour(hour);
     let {icon} = props;

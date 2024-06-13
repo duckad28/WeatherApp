@@ -4,8 +4,10 @@ import { fontSizes, icons, images } from '../constants/index';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft, height } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 import { faLocationPin, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { Swipeable } from 'react-native-gesture-handler';
 import { colors } from '../constants';
 import { cToF } from '../utilities';
+import backgroundServer from 'react-native-background-actions';
 
 
 const LocationItem = (props) => {
@@ -13,19 +15,21 @@ const LocationItem = (props) => {
     let {unit} = props;
     let current_temperature = unit ? Math.round(currentData?.temp_c) : cToF(currentData?.temp_c);
     let onPress = props.onPress;
+
+    
     return (
     <TouchableOpacity onPress={onPress} style={{ marginVertical: 10, flex: 1 }}>
             <ImageBackground 
                 source={imageBackground} 
                 style={{
-                    height: 60,
+                    height: 70,
                     flexDirection: 'row',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     padding: 10,
                     backgroundColor: colors.locationColor,
-                    borderRadius: 30}}
-                imageStyle={{borderRadius: 30}}>
+                    borderRadius: 20}}
+                imageStyle={{borderRadius: 20}}>
 
                 <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around'}}>
                     <View 
@@ -49,6 +53,6 @@ const LocationItem = (props) => {
     </TouchableOpacity>)
 }
 const textstyle = StyleSheet.create({
-    fontSize: 18, fontWeight: '600', color: colors.textColor
+    fontSize: 20, fontWeight: '600', color: colors.textColor
 })
 export default LocationItem;

@@ -14,10 +14,10 @@ import {
     Dimensions,
     LogBox,
     NativeModules,
-    Platform
+    Platform, Easing
 } from 'react-native';
 
-import { SmallButton, BigTemperature, Temperature, WeatherInfoH, Button, WeatherHourlyV, ExtraInfoItem } from '../components';
+import { SmallButton, BigTemperature, Temperature, WeatherInfoH, Button, WeatherHourlyV, ExtraInfoItem,Rain } from '../components';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import LottieView from 'lottie-react-native';
 
@@ -32,8 +32,10 @@ import { debounce, size } from 'lodash';
 import { getLocationData, storeLocationData } from '../utilities/locationStorage';
 import { getData, storeData } from '../utilities/asyncStorage';
 import NetInfo from "@react-native-community/netinfo";
+import PushNotification from "react-native-push-notification";
+import BackgroundService from 'react-native-background-actions';
+import TextTicker from 'react-native-text-ticker';
 
-import Rain from 'rainy-background-reactnative';
 
 const en = ['Allow Weather to access your location', 'Daily Forecast', '24 Hours Forecast', 'Sun', 'Moon', 'Rise', 'Set', 'Humidity', 'Pressure', 'Real feel'];
 const vn = ['Cho phép truy cập vào vị trí của bạn', 'Dự báo theo ngày', 'Dự báo thời tiết trong ngày', 'Mặt trời', 'Mặt trăng',  'Mọc', 'Lặn', 'Độ ẩm', 'Áp suất', 'Cảm nhận'];
@@ -54,7 +56,7 @@ const MainScreen = (props) => {
     
 
     // Các dữ liệu
-    let [weatherLocations, setWeatherLocations] = useState(route?.params?.newLocations);
+    let [weatherLocations, setWeatherLocations] = useState([]);
     let [weatherDatas, setWeatherDatas] = useState([]);
     let [preWeather, setPreWeather] = useState([]);
     
@@ -87,6 +89,9 @@ const MainScreen = (props) => {
 
     // Check internet
 
+    // Long text animatino
+
+
     //Lay dia chi chi tiet tu toa do
     const reverseGeoCode = async ({ lat, long }) => {
         fetchGeo({ lat: lat, long: long })
@@ -106,7 +111,8 @@ const MainScreen = (props) => {
             fetchForecast({ cityName: location })
                 .then((data) => {
                     temp.push({
-                        location: location,
+                        location: data?.location?.name,
+                        country: data?.location?.country,
                         fetch_time: now.valueOf(),
                         local_time: data?.location?.localtime,
                         imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
@@ -124,9 +130,9 @@ const MainScreen = (props) => {
 
     // Xử lý refresh
     const handleRefresh = () => {
-        setRefreshing(true);
-        fetchWeatherDatas(weatherLocations);
-        setRefreshing(false);
+        if (internet) {
+            fetchWeatherDatas(weatherLocations);
+        }
     }
 
     // Xử lý khi truy cập địa chỉ hiện tại
@@ -147,7 +153,8 @@ const MainScreen = (props) => {
                 fetchForecast({ cityName: currentLocation?.position?.lat + ", " + currentLocation?.position?.lng })
                     .then((data) => {
                         temp.unshift({
-                            location: currentLocation?.address?.city,
+                            location: data?.location?.name,
+                            country: data?.location?.country,
                             fetch_time: now.valueOf(),
                             local_time: data?.location?.localtime,
                             imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
@@ -179,8 +186,12 @@ const MainScreen = (props) => {
     // Lấy các địa điểm được lưu sẵn
     const getAsyncData = async () => {
         let locations = await getLocationData('locations');
-        if (locations && locations.length > 0) {
-            setWeatherLocations(locations);
+            if(!locations || locations.length == 0) {
+                await delay(2000);
+                navigate('LocationScreen', {lang: isE, unit: isC});
+            }
+            else {
+                setWeatherLocations(locations);
             if (Platform.OS === "android") {
                 NetInfo.fetch().then(({isConnected}) => {
                   if (isConnected) {
@@ -191,13 +202,16 @@ const MainScreen = (props) => {
                   }
                 });
               }
-            
-        }   
+            }
     }
 
     // Lấy dữ liệu các địa điểm được lưu
     const getPreWeather = async () => {
         let weathers = await getLocationData('weathers');
+        if (!weathers) {
+            await delay(2000);
+            navigate('LocationScreen');
+        }
         if (weathers && weathers.length > 0) {
             console.log("pre" + weathers[0]?.location)
             setPreWeather(weathers);
@@ -220,9 +234,12 @@ const MainScreen = (props) => {
         }
     }
 
+    
+
     useEffect(() => {
         if (route?.params?.newWeatherData) {
-            setWeatherDatas(route?.params?.newWeatherData);
+            storeLocationData('weathers', route?.params?.newWeatherData);
+        setWeatherDatas(route?.params?.newWeatherData);
         }
     }, [route?.params?.newWeatherData])
 
@@ -259,17 +276,20 @@ const MainScreen = (props) => {
 
     if (isFetched) {
         if (internet) {
-            storeLocationData('weathers', weatherDatas);
-            storeLocationData('noti', weatherDatas[0]);
-            let text = weatherDatas[0]?.location;
-            let obj = {
-                city: 'Ha Noi',
-                lang: isE,
-                unit: isC
+            if (weatherDatas) {
+                storeLocationData('weathers', weatherDatas);
+                storeLocationData('noti', weatherDatas[0]);
+                let text = weatherDatas[0]?.location;
+                let obj = {
+                    city: 'Ha Noi',
+                    lang: isE,
+                    unit: isC
+                }
+                if (text) {
+                    handleSendWg(text);
+                }
             }
-            if (text) {
-                handleSendWg(text);
-            }
+            
         }
         return (
             <View 
@@ -339,6 +359,9 @@ const MainScreen = (props) => {
                         let max_temperature = Math.round(weatherDataItem?.item?.forecastData[i_day]?.day?.maxtemp_c);
                         let min_temperature = Math.round(weatherDataItem?.item?.forecastData[i_day]?.day?.mintemp_c);
                         let current_weather_condition = current_weather?.condition?.text;
+                        current_weather_condition = isE ? current_weather_condition : viText[current_weather_condition.trim().toLowerCase()];
+                        let text_length = current_weather_condition.length;
+                        let isLongText = text_length > 24;
                         let current_icon = images[getWeatherIcon(current_weather?.condition?.icon)];
                         let image_background = weatherDataItem?.item?.imageBackground;
 
@@ -482,11 +505,11 @@ const MainScreen = (props) => {
                                         }}>
                                             <SmallButton content={lang[0]}
                                                 onPress={() => {
-                                                    if (locationPermission) {
-                                                        handleAccessLocation()
-                                                    } else {
-                                                        navigate('LocationPermissionScreen', { permission: locationPermission });
-                                                    }
+                                                    // if (locationPermission) {
+                                                    //     handleAccessLocation()
+                                                    // } else {
+                                                    //     navigate('LocationPermissionScreen', { permission: locationPermission });
+                                                    // }
                                                 }}
                                             ></SmallButton>
 
@@ -542,14 +565,13 @@ const MainScreen = (props) => {
                                                         ...commonStyle1,
                                                         justifyContent: 'center'
                                                     }}>
-                                                        <Text
-                                                            style={{
+                                                        <TextTicker scrollSpeed={isLongText ? 40 : 0} loop={isLongText} numberOfLines={1} style={{
                                                                 color: colors.textColor,
-                                                                fontSize: fontSizes.h4
-                                                            }}
-                                                        >
-                                                            {isE ? current_weather_condition : viText[current_weather_condition.trim().toLowerCase()]}
-                                                        </Text>
+                                                                fontSize: fontSizes.h4,
+                                                                width: 140
+                                                            }}>
+                                                        {current_weather_condition}
+                                                        </TextTicker>
 
                                                         <View style={{ width: 20 }}></View>
                                                         <Temperature

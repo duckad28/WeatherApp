@@ -5,16 +5,20 @@ import {
     FlatList,
     Text,
     TextInput,
+    BackHandler,
+    Image, StyleSheet
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowLeft, faPlus, faSearch, faMinusCircle, faWifi } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlus, faSearch, faMinusCircle, faWifi, faTrashCan, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { LocationItem } from '../components';
 import { colors } from '../constants';
 import { fetchSuggestLocation, fetchForecast } from '../repositories/fetchData';
 import { debounce } from 'lodash';
 import { storeLocationData, getLocationData } from '../utilities/locationStorage';
+import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { storeData, getData } from '../utilities/asyncStorage';
-import { images } from '../constants/index'
+import { images, fontSizes } from '../constants/index'
+import { getWeatherIcon, getDayOfWeek, cToF } from '../utilities';
 import NetInfo from "@react-native-community/netinfo";
 
 const en = ['Manage places', 'Enter location', 'Cancel'];
@@ -29,36 +33,50 @@ const LocationScreen = (props) => {
 
     let [searchText, setSearchText] = useState('');
     let [searching, setSearching] = useState(false);
-    let [locationData, setLocationData] = useState([{ location: 'Ha Noi' }]);
+    let [locationData, setLocationData] = useState([]);
     let [weatherData, setWeatherData] = useState([]);
     let [suggestLocations, setSuggestLocations] = useState([]);
+    let [searchLocation, setSearchLocation] = useState({});
     let [isChange, setIsChange] = useState(0);
     let [internet, setInternet] = useState(true);
 
     const handlePress = () => {
+
+        if (locationData.length == 0) {
+            BackHandler.exitApp();
+        }
         if (isChange > 0) {
-            navigate('MainScreen', { newLocations: locationData, newWeatherData: weatherData, lang: route?.params?.lang, unit: route?.params?.unit })
+            navigate('MainScreen', { newLocations: locationData, newWeatherData: weatherData, lang: route?.params?.lang, unit: route?.params?.unit });
         } else {
-            navigate('MainScreen', {lang: route?.params?.lang, unit: route?.params?.unit})
+            navigate('MainScreen', { lang: route?.params?.lang, unit: route?.params?.unit })
         }
     }
 
     const handleRemoveLocation = (item) => {
         let newWeatherData = weatherData.filter(remainItem => remainItem !== item);
-        if (newWeatherData) {
+        if (newWeatherData.length == 0) {
+            storeLocationData('locations', []);
+            storeLocationData('weathers', []);
+            setWeatherData([]);
+            setLocationData([]);
+            setIsChange(++isChange);
+        } else {
             let newLocationData = weatherData.map((item) => {
                 return {
-                    location: item?.location
+                    location: item?.location,
+                    country: item?.country
                 }
+
             })
             if (newLocationData) {
                 storeLocationData('locations', newLocationData);
+                storeLocationData('weathers', newWeatherData);
                 setWeatherData(newWeatherData);
                 setLocationData(newLocationData);
                 setIsChange(++isChange);
             }
-            
         }
+
     }
 
     const fetchNewLocation = (loc) => {
@@ -67,7 +85,8 @@ const LocationScreen = (props) => {
         fetchForecast({ cityName: loc?.name })
             .then((data) => {
                 temp.push({
-                    location: loc?.name,
+                    location: data?.location?.name,
+                    country: data?.location?.country,
                     fetch_time: now.valueOf(),
                     local_time: data?.location?.localtime,
                     imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
@@ -83,43 +102,69 @@ const LocationScreen = (props) => {
     }
     const handleAddLocation = async (loc) => {
         if (loc) {
-            if (!locationData.some(e => e.location === loc?.name)) {
-                let temp = [...locationData, { location: loc?.name }];
-                if (temp) {
-                    fetchNewLocation(loc);
-                    storeLocationData('locations', temp)
+            if (!locationData.some(e => (e.location === loc?.name && e.country === loc?.country))) {
+                if (searchLocation?.location == loc?.name && loc?.country == searchLocation?.coutry) {
+                    let temp = [...locationData, { location: loc?.name, country: loc?.country }];
+                    storeLocationData('locations', temp);
                     setLocationData(temp);
+                    setWeatherData([...weatherData, searchLocation]);
                     setIsChange(++isChange);
-                    await delay(800);
-                    setSearching(!searching);
+                } else {
+                    let temp = [...locationData, { location: loc?.name, country: loc?.country }];
+                    if (temp) {
+                        fetchNewLocation(loc);
+                        storeLocationData('locations', temp)
+                        setLocationData(temp);
+                        setIsChange(++isChange);
+                        await delay(1500);
+                    }
                 }
             }
-            else {
-                setSearching(!searching);
-            }
         }
+    }
+
+    const fetchLoc = (loc) => {
+        let now = new Date();
+        fetchForecast({ cityName: loc?.name })
+            .then((data) => {
+                setSearchLocation({
+                    location: data?.location?.name,
+                    country: data?.location?.country,
+                    fetch_time: now.valueOf(),
+                    local_time: data?.location?.localtime,
+                    imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
+                    aqiData: data?.current?.air_quality,
+                    currentData: data?.current,
+                    forecastData: data?.forecast?.forecastday,
+                })
+                console.log(loc?.name)
+            })
+            .catch((error) => {
+                console.log(error)
+            })
     }
 
     const handleSearch = (text) => {
         setSearchText(text);
         if (text && text.length > 2) {
             if (Platform.OS === "android") {
-                NetInfo.fetch().then(({isConnected}) => {
-                  if (isConnected) {
-                    setInternet(true);
-                    fetchSuggestLocation({ cityName: text })
-                        .then(data => {
-                            setSuggestLocations(data);
-                        })
-                        .catch(error => {
-                            console.log(error)
-                        })
-                  } else {
-                    setInternet(false);
-                  }
+                NetInfo.fetch().then(({ isConnected }) => {
+                    if (isConnected) {
+                        setInternet(true);
+                        fetchSuggestLocation({ cityName: text })
+                            .then(data => {
+                                setSuggestLocations(data);
+                                fetchLoc(data[0])
+                            })
+                            .catch(error => {
+                                console.log(error)
+                            })
+                    } else {
+                        setInternet(false);
+                    }
                 });
-              }
-            
+            }
+
         }
     }
 
@@ -129,9 +174,11 @@ const LocationScreen = (props) => {
     useEffect(() => {
         if (route?.params?.weatherData) {
             setLocationData(route?.params?.weatherData.map((item) => {
-                return { location: item?.location }
+                return { location: item?.location, country: item?.country }
             }))
             setWeatherData(route?.params?.weatherData);
+        } else {
+            setSearching(true);
         }
     }, [route?.params?.weatherData])
 
@@ -192,41 +239,48 @@ const LocationScreen = (props) => {
 
 
 
-                    <View style={{ flex: 12, margin: 20 }}>
+                    <GestureHandlerRootView style={{ flex: 12, margin: 20 }}>
                         <FlatList data={weatherData}
                             showsVerticalScrollIndicator={false}
                             renderItem={({ item, index }) => {
+                                const rightSwipe = () => {
+                                    return (
+                                        <View style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: '#00000020', marginVertical: 20, marginHorizontal: 5, paddingHorizontal: 10, borderRadius: 10 }}>
+                                            <TouchableOpacity
+                                                onPress={() => { handleRemoveLocation(item) }}>
+                                                <FontAwesomeIcon
+                                                    icon={faTrashCan}
+                                                    size={25}
+                                                    style={{ tintColor: 'black' }}
+                                                >
+                                                </FontAwesomeIcon>
+                                            </TouchableOpacity>
+                                        </View>
+                                    )
+                                }
                                 return (
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        justifyContent: 'center',
-                                        alignItems: 'center'
-                                    }}>
-                                        <LocationItem eachLocation={item} unit={route?.params?.unit} onPress={() => {
-                                            storeData('city', item.location);
-                                            if (isChange > 0) {
-                                                navigate('MainScreen', { toIndex: index, newLocations: locationData, newWeatherData: weatherData, lang: route?.params?.lang, unit: route?.params?.unit });
-                                            } else {
-                                                navigate('MainScreen', { toIndex: index, lang: route?.params?.lang, unit: route?.params?.unit });
-                                            }
+                                    <Swipeable renderRightActions={rightSwipe}>
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
                                         }}>
-                                        </LocationItem>
+                                            <LocationItem eachLocation={item} unit={route?.params?.unit} onPress={() => {
+                                                if (isChange > 0) {
+                                                    navigate('MainScreen', { toIndex: index, newLocations: locationData, newWeatherData: weatherData, lang: route?.params?.lang, unit: route?.params?.unit });
+                                                } else {
+                                                    navigate('MainScreen', { toIndex: index, lang: route?.params?.lang, unit: route?.params?.unit });
+                                                }
+                                            }}>
+                                            </LocationItem>
 
-                                        <TouchableOpacity
-                                            onPress={() => { handleRemoveLocation(item) }}>
-                                            <FontAwesomeIcon
-                                                icon={faMinusCircle}
-                                                size={25}
-                                                style={{ tintColor: 'black' }}
-                                            >
-                                            </FontAwesomeIcon>
-                                        </TouchableOpacity>
-                                    </View>
+                                        </View>
+                                    </Swipeable>
                                 )
                             }}
                             keyExtractor={item => item.location}>
                         </FlatList>
-                    </View>
+                    </GestureHandlerRootView>
                 </View>
             </View>
         )
@@ -267,7 +321,11 @@ const LocationScreen = (props) => {
                         }} placeholder={lan[1]} style={{}}></TextInput>
 
                 </View>
-                <TouchableOpacity onPress={() => setSearching(!searching)}
+                <TouchableOpacity onPress={() => {
+                    setSearching(!searching);
+                    setSuggestLocations([]);
+                }
+                }
                     style={{
                         marginTop: 20,
                         alignItems: 'center', height: 50, justifyContent: 'center'
@@ -279,31 +337,50 @@ const LocationScreen = (props) => {
             <View style={{ height: 10 }}></View>
             <View style={{ flex: 1, margin: 20, flexDirection: 'row', justifyContent: 'center' }}>
                 {
-                    suggestLocations.length > 0 && searching ? (
+                    suggestLocations.length > 0 && searching && searchLocation ? (
                         <View>
                             {
                                 suggestLocations.map((loc, index) => {
+                                    let added = locationData.some(e => (e.location === loc?.name && e.country === loc?.country));
                                     return (
-                                        <TouchableOpacity
-                                            key={index}
-                                            style={{
-                                                height: 40,
-                                                width: '90%',
-                                                margin: 5,
-                                                padding: 10,
-                                                flexDirection: 'row',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                borderRadius: 10,
-                                                backgroundColor: colors.backgroundColor
-                                            }}
-                                            onPress={() => {
-                                                handleAddLocation(loc)
-                                            }}
-                                        >
-                                            <Text>{loc?.name}, {loc?.country}</Text>
-                                            <FontAwesomeIcon icon={faPlus} size={15}></FontAwesomeIcon>
-                                        </TouchableOpacity>
+                                        <View key ={index} style={{padding: 10}}>
+                                            <TouchableOpacity
+                                                key={index}
+                                                style={{
+                                                    height: 90,
+                                                    width: '90%',
+                                                    flexDirection: 'row',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'flex-start',
+                                                    
+                                                }}
+                                                onPress={() => {
+                                                    handleAddLocation(loc)
+                                                }}
+                                            >
+                                                <View style={{flex: 1, justifyContent: 'flex-start'}}>
+                                                    <Text style={{ fontSize: fontSizes.h5, color: 'black' }}>{loc?.name}</Text>
+                                                    <Text style={{ fontSize: fontSizes.h6 }}>{loc?.country}</Text>
+                                                </View>
+                                                
+                                                {added ? <FontAwesomeIcon icon={faCheck} size={15}></FontAwesomeIcon> : <FontAwesomeIcon icon={faPlus} size={15}></FontAwesomeIcon>}
+                                            </TouchableOpacity>
+                                            {loc?.name == searchLocation?.location && loc?.country == searchLocation?.country && (
+                                                <View>
+                                                    <FlatList
+                                                        data={searchLocation?.forecastData}
+                                                        horizontal
+                                                        showsHorizontalScrollIndicator={false}
+                                                        renderItem={({ item }) => {
+                                                            return <WeatherInfoV weatherInfo={item} unit={route?.params?.unit} lang={route?.params?.lang}></WeatherInfoV>
+
+                                                        }}
+                                                        keyExtractor={(item, index) => index}>
+
+                                                    </FlatList>
+                                                </View>
+                                            )}
+                                        </View>
                                     )
                                 })
                             }
@@ -312,14 +389,14 @@ const LocationScreen = (props) => {
                 }
                 {
                     !internet ? (
-                        <View style={{height: 300, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 10}}>
+                        <View style={{ height: 300, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
                             <FontAwesomeIcon icon={faWifi} size={50}></FontAwesomeIcon>
                             <Text>Couldn't connect to the network, try again</Text>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={{
                                     height: 40,
                                     width: 120,
-                                    backgroundColor: colors.buttonColor, 
+                                    backgroundColor: colors.buttonColor,
                                     borderRadius: 30,
                                     justifyContent: 'center',
                                     alignItems: 'center'
@@ -337,5 +414,40 @@ const LocationScreen = (props) => {
         </View>
     }
 }
+
+const WeatherInfoV = (props) => {
+    let { day, date } = props.weatherInfo;
+    let { unit, lang } = props;
+    let dayOfWeeks = getDayOfWeek(date);
+    let highestTemp = Math.round(day?.maxtemp_c);
+    let lowestTemp = Math.round(day?.mintemp_c);
+    return (
+        <View style={{
+            flexDirection: 'column', borderWidth: 1, borderColor: colors.borderColor,
+            height: 140, width: 50, marginHorizontal: 2, paddingTop: 5,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderRadius: 10
+        }}>
+            <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ ...textStyle, fontSize: fontSizes.h6 }}>{dayOfWeeks}</Text>
+            </View>
+
+            <Image source={images[getWeatherIcon(day?.condition?.icon)]} style={{ tintColor: '#000000', width: 20, height: 16, justifyContent: 'center' }}></Image>
+
+            <View style={{
+                flexDirection: 'column', height: 50, justifyContent: 'space-between', alignItems: 'center'
+            }}>
+                <Text style={textStyle}>{unit ? highestTemp : cToF(highestTemp)}°</Text>
+                <Text style={textStyle}>{unit ? lowestTemp : cToF(lowestTemp)}°</Text>
+            </View>
+        </View>
+    )
+}
+
+const textStyle = StyleSheet.create({
+    color: colors.blackTextColor, fontSize: fontSizes.h5, textAlignVertical: 'center'
+})
+
 
 export default LocationScreen;

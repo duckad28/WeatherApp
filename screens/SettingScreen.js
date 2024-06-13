@@ -10,14 +10,20 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { DataSelections } from '../components';
-import { colors, fontSizes } from '../constants';
+import { colors, fontSizes, viText } from '../constants';
 import { getData, storeData } from '../utilities/asyncStorage';
+import { getLocationData, storeLocationData } from '../utilities/locationStorage';
+import PushNotification from 'react-native-push-notification';
+import notifee, { EventType, AndroidStyle } from '@notifee/react-native';
 
 const en = ['Settings','General', 'Language', 'Temperature Units', 'Notifications', 'Update at night automatically', 'Update weather info between 23:00 and 07:00'];
 const vn = ['Cài đặt','Thông tin chung', 'Ngôn ngữ', 'Đơn vị nhiệt độ', 'Thông báo', 'Cập nhật tự động vào buổi tối', 'Cập nhật thông tin thời tiết giữa 23 giờ và 7 giờ sáng']
 
+import { onDisplayNotification, onCreateTriggerNotification } from '../utilities/pushNoti';
+
 
 const SettingScreen = (props) => {
+    
     const { navigation } = props;
     const { navigate } = navigation;
     let {route} = props;
@@ -43,6 +49,7 @@ const SettingScreen = (props) => {
             isSelected: route?.params?.lang
         },
     ]);
+
     let [temperatures, setTemperatures] = useState([
         {
             name: 'Celcius',
@@ -54,7 +61,13 @@ const SettingScreen = (props) => {
         },
     ]);
     const [isEnabled, setIsEnabled] = useState(false);
-    const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+    
+    const toggleSwitch = () => {
+        setIsEnabled(previousState => !previousState);
+        // handleNotification();
+        onDisplayNotification();
+        onCreateTriggerNotification();
+    };
 
     useEffect(() => {
         languages.map(item => {
@@ -182,6 +195,7 @@ const headerStyle = StyleSheet.create({
     color: 'black',
     fontWeight: '500'
 })
+
 const normalTextStyle = StyleSheet.create({
     fontSize: fontSizes.h5,
     color: colors.fadeBlackTextColor,
@@ -189,6 +203,7 @@ const normalTextStyle = StyleSheet.create({
     textAlignVertical: 'top',
     marginHorizontal: 10
 })
+
 const generalStyle = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'space-between',
@@ -197,4 +212,5 @@ const generalStyle = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: colors.fadeTextColor,
 })
+
 export default SettingScreen;
