@@ -12,7 +12,7 @@ import retrofit2.http.Query;
 
 public interface ApiService {
 
-    //https://api.weatherapi.com/v1/current.json?key=9a9dcb14233e4d9aad5142530242004&q=%22Ha%20Noi%22
+    //https://api.weatherapi.com/v1/current.json?key=9a9dcb14233e4d9aad5142530242004&q=%22Ha%20Noi%22&aqi=yes
     Gson gson = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd HH:mm")
             .create();
@@ -25,6 +25,7 @@ public interface ApiService {
 
     @GET("v1/current.json")
     Call<Currency> getDataAPI(@Query("key") String key,
-                              @Query("q") String q);
+                              @Query("q") String q,
+                              @Query("aqi") String aqi);
 
 }
