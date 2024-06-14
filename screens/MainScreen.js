@@ -52,11 +52,9 @@ const MainScreen = (props) => {
 
     // Các dữ liệu khởi tạo
     let [isFetched, setIsFetched] = useState(false);
-    let [refreshing, setRefreshing] = useState(false);
     
 
     // Các dữ liệu
-    let [weatherLocations, setWeatherLocations] = useState([]);
     let [weatherDatas, setWeatherDatas] = useState([]);
     let [preWeather, setPreWeather] = useState([]);
     
@@ -66,7 +64,7 @@ const MainScreen = (props) => {
     let [isC, setIsC] = useState(true);
 
     // Vị trí hiện tại
-    let [currentLocation, setCurrentLocation] = useState({});
+    let [currentLocation, setCurrentLocation] = useState(null);
     let [locationPermission, setLocationPermission] = useState(route?.params?.permission);
     
     // Location list
@@ -94,25 +92,53 @@ const MainScreen = (props) => {
 
     //Lay dia chi chi tiet tu toa do
     const reverseGeoCode = async ({ lat, long }) => {
+        let weathers = await getLocationData('weathers');
         fetchGeo({ lat: lat, long: long })
             .then(data => {
-                if (data) {
-                    setCurrentLocation(data.items[0]);
+                let temp = data?.items[0];
+                if (weathers) {
+                    if (weathers.some(item => (item?.location == temp?.address?.city))) {
+                    } else {
+                        let now = new Date(weathers[0]?.fetch_time);
+                        fetchForecast({cityName: temp?.address?.city})
+                            .then((data) => {
+                                weathers.unshift({
+                                    location: data?.location?.name,
+                                    country: data?.location?.country,
+                                    curloc: true,
+                                    fetch_time: now.valueOf(),
+                                    local_time: data?.location?.localtime,
+                                    imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
+                                    aqiData: data?.current?.air_quality,
+                                    currentData: data?.current,
+                                    forecastData: data?.forecast?.forecastday,
+                                })
+                                return weathers;
+                            })
+                            .then((data) => {
+                                setWeatherDatas(data);
+                                storeLocationData('weathers', data);
+                                storeLocationData('CurrentLocation', data[0]);
+                                setCurrentLocation(data[0]);
+                            })
+                    }
                 }
             }
-            )
+        )
     };
 
     // Lấy dữ liệu từ API
     const fetchWeatherDatas = (locations) => {
         const temp = [];
         const data = locations.map(async ({ location }) => {
+            let curloc = await getLocationData('CurrentLocation');
             let now = new Date();
             fetchForecast({ cityName: location })
                 .then((data) => {
                     temp.push({
                         location: data?.location?.name,
                         country: data?.location?.country,
+                        curloc: data?.location?.name == curloc?.location,
                         fetch_time: now.valueOf(),
                         local_time: data?.location?.localtime,
                         imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
@@ -131,7 +157,7 @@ const MainScreen = (props) => {
     // Xử lý refresh
     const handleRefresh = () => {
         if (internet) {
-            fetchWeatherDatas(weatherLocations);
+            fetchWeatherDatas(weatherDatas);
         }
     }
 
@@ -139,39 +165,13 @@ const MainScreen = (props) => {
     const handleAccessLocation = () => {
         GeoLocation.getCurrentPosition(position => {
             if (position.coords) {
-                reverseGeoCode({
-                    lat: position.coords.latitude,
-                    long: position.coords.longitude,
-                });
-
+                reverseGeoCode({lat: position?.coords?.latitude, long: position?.coords?.longitude})
             }
-        })
-        if (currentLocation.address?.city) {
-            const temp = [...weatherDatas]
-            if (temp[0]?.location !== currentLocation?.address?.city) {
-                let now = new Date();
-                fetchForecast({ cityName: currentLocation?.position?.lat + ", " + currentLocation?.position?.lng })
-                    .then((data) => {
-                        temp.unshift({
-                            location: data?.location?.name,
-                            country: data?.location?.country,
-                            fetch_time: now.valueOf(),
-                            local_time: data?.location?.localtime,
-                            imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
-                            aqiData: data?.current?.air_quality,
-                            currentData: data?.current,
-                            forecastData: data?.forecast?.forecastday,
-                        })
-                    })
-                setRefreshing(true);
-                setWeatherDatas(temp)
-                setRefreshing(false);
-            }
-            else {
-                alert("trung")
-            }
-        }
+        },
+        error => console.log(error),
+        {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},)
     }
+
     const handleSendWg = async (text) => {
         SharedWidget.set(JSON.stringify({text}));
         console.log(JSON.stringify({text}));
@@ -185,18 +185,21 @@ const MainScreen = (props) => {
 
     // Lấy các địa điểm được lưu sẵn
     const getAsyncData = async () => {
-        let locations = await getLocationData('locations');
-            if(!locations || locations.length == 0) {
+        let curloc = await getLocationData('CurrentLocation');
+        if (curloc) {
+            setCurrentLocation(curloc);
+        }
+        let weathers = await getLocationData('weathers');
+            if(!weathers || weathers.length == 0) {
                 await delay(2000);
                 navigate('LocationScreen', {lang: isE, unit: isC});
             }
             else {
-                setWeatherLocations(locations);
             if (Platform.OS === "android") {
                 NetInfo.fetch().then(({isConnected}) => {
                   if (isConnected) {
                       setInternet(true);
-                      fetchWeatherDatas(locations);
+                      fetchWeatherDatas(weathers);
                   } else {
                       setInternet(false);
                   }
@@ -208,21 +211,23 @@ const MainScreen = (props) => {
     // Lấy dữ liệu các địa điểm được lưu
     const getPreWeather = async () => {
         let weathers = await getLocationData('weathers');
-        if (!weathers) {
-            await delay(2000);
-            navigate('LocationScreen');
-        }
         if (weathers && weathers.length > 0) {
-            console.log("pre" + weathers[0]?.location)
             setPreWeather(weathers);
             setWeatherDatas(weathers);
         }
     }
 
-    const getPermisison = async () => {
+    // Kiểm tra quền truy cập địa chỉ
+    const getPermission = async () => {
         let isPermission = await getData('LocationPermission');
-        setLocationPermission(isPermission == "true")
+        let curloc = await getLocationData('CurrentLocation');
+        setLocationPermission(isPermission == "true");
+        if (isPermission == "true" && weatherDatas && weatherDatas.length !=0 && !curloc) {
+            handleAccessLocation();
+        } 
+        
     }
+
     const getGeneral = async () => {
         let lang = await getData('language');
         let unit = await getData('unit');
@@ -234,12 +239,10 @@ const MainScreen = (props) => {
         }
     }
 
-    
-
     useEffect(() => {
         if (route?.params?.newWeatherData) {
             storeLocationData('weathers', route?.params?.newWeatherData);
-        setWeatherDatas(route?.params?.newWeatherData);
+            setWeatherDatas(route?.params?.newWeatherData);
         }
     }, [route?.params?.newWeatherData])
 
@@ -252,7 +255,7 @@ const MainScreen = (props) => {
     }, [])
 
     useEffect(() => {
-        if (ref.current && route?.params?.toIndex != undefined && route?.params?.toIndex < weatherLocations.length) {
+        if (ref.current && route?.params?.toIndex != undefined && route?.params?.toIndex < weatherDatas.length) {
             ref.current?.scrollToIndex({
                 index: route?.params?.toIndex,
                 animated: false
@@ -267,7 +270,7 @@ const MainScreen = (props) => {
     }, [route?.params?.unit, route?.params?.lang])
 
     useEffect(() => {
-        getPermisison();
+        getPermission();
     }, [route?.params?.permission])
 
     if (isFetched == false) {
@@ -277,9 +280,14 @@ const MainScreen = (props) => {
     if (isFetched) {
         if (internet) {
             if (weatherDatas) {
-                storeLocationData('weathers', weatherDatas);
-                storeLocationData('noti', weatherDatas[0]);
-                let text = weatherDatas[0]?.location;
+                if (currentLocation) {
+                    let t = weatherDatas.filter(item => item.curloc);
+                    let text = t[0]?.location;
+                    storeLocationData('noti', t[0]);
+                    handleSendWg(text);
+                }
+                else {
+                    let text = weatherDatas[0]?.location;
                 let obj = {
                     city: 'Ha Noi',
                     lang: isE,
@@ -288,6 +296,10 @@ const MainScreen = (props) => {
                 if (text) {
                     handleSendWg(text);
                 }
+                storeLocationData('noti', weatherDatas[0]);
+                }
+                
+                
             }
             
         }
@@ -361,7 +373,7 @@ const MainScreen = (props) => {
                         let current_weather_condition = current_weather?.condition?.text;
                         current_weather_condition = isE ? current_weather_condition : viText[current_weather_condition.trim().toLowerCase()];
                         let text_length = current_weather_condition.length;
-                        let isLongText = text_length > 24;
+                        let isLongText = (text_length > 16);
                         let current_icon = images[getWeatherIcon(current_weather?.condition?.icon)];
                         let image_background = weatherDataItem?.item?.imageBackground;
 
@@ -503,15 +515,11 @@ const MainScreen = (props) => {
                                         <View style={{
                                             flex: 1, alignItems: 'center'
                                         }}>
-                                            <SmallButton content={lang[0]}
+                                            {locationPermission && currentLocation ? <View style={{height: 5}}></View> : <SmallButton content={lang[0]}
                                                 onPress={() => {
-                                                    // if (locationPermission) {
-                                                    //     handleAccessLocation()
-                                                    // } else {
-                                                    //     navigate('LocationPermissionScreen', { permission: locationPermission });
-                                                    // }
+                                                    navigate('LocationPermissionScreen', { permission: locationPermission, lang: isE, unit: isC });
                                                 }}
-                                            ></SmallButton>
+                                            ></SmallButton>}
 
                                             <View style={{
                                                 ...commonStyle1,
@@ -540,7 +548,7 @@ const MainScreen = (props) => {
                                                 flex: 10
                                             }}
                                             refreshControl={
-                                                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                                                <RefreshControl onRefresh={handleRefresh} />
                                             }
                                         >
                                             {/*------------Current Temperature.------------*/}
@@ -565,14 +573,20 @@ const MainScreen = (props) => {
                                                         ...commonStyle1,
                                                         justifyContent: 'center'
                                                     }}>
-                                                        <TextTicker scrollSpeed={isLongText ? 40 : 0} loop={isLongText} numberOfLines={1} style={{
+                                                        {isLongText ? <TextTicker scrollSpeed={isLongText ? 40 : 0} loop={isLongText} numberOfLines={1} style={{
                                                                 color: colors.textColor,
                                                                 fontSize: fontSizes.h4,
                                                                 width: 140
                                                             }}>
                                                         {current_weather_condition}
                                                         </TextTicker>
-
+                                                        : <Text numberOfLines={1} style={{
+                                                            color: colors.textColor,
+                                                            fontSize: fontSizes.h4,
+                                                            width: 140
+                                                        }}>
+                                                            {current_weather_condition}
+                                                            </Text>}
                                                         <View style={{ width: 20 }}></View>
                                                         <Temperature
                                                             highest={max_temperature}
@@ -592,7 +606,7 @@ const MainScreen = (props) => {
                                                             marginHorizontal: 30,
 
                                                         }}>
-                                                            <SmallButton content={'AQI'} onPress={() => navigate('AqiScreen', { data: weatherDataItem?.item?.aqiData, lang: isE, imageBackground: image_background })}></SmallButton>
+                                                            <SmallButton content={'AQI'} onPress={() => navigate('AqiScreen', { data: weatherDataItem?.item?.aqiData,unit: isC, lang: isE, imageBackground: image_background })}></SmallButton>
                                                             <View style={{
                                                                 ...commonStyle2,
                                                                 paddingHorizontal: 10,
