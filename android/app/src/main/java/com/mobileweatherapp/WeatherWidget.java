@@ -49,49 +49,49 @@ public class WeatherWidget extends AppWidgetProvider {
                                 int appWidgetId) {
 
         try {
-        String timeString =
-                DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date());
-        SharedPreferences sharedPref = context.getSharedPreferences("DATA", Context.MODE_PRIVATE);
-        String appString = sharedPref.getString("appData", "{\"text\":'no data'}");
-        JSONObject appData = new JSONObject(appString);
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.weather_widget);
+            String timeString =
+                    DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date());
+            SharedPreferences sharedPref = context.getSharedPreferences("DATA", Context.MODE_PRIVATE);
+            String appString = sharedPref.getString("appData", "{\"text\":'no data'}");
+            JSONObject appData = new JSONObject(appString);
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.weather_widget);
 //Thay doi textview dia diem
-        views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_condition, appData.getString("text")));
-        int imgId = setImg(tvCondition);
-        views.setImageViewResource(R.id.imageView, imgId);
+            views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_condition, appData.getString("text")));
+            int imgId = setImg(tvCondition);
+            views.setImageViewResource(R.id.imageView, imgId);
 //Thay doi textview thoi gian//
-        views.setTextViewText(R.id.time_update,
-                context.getResources().getString(
-                        R.string.time, timeString));
-        //Toast.makeText(context, timeString, Toast.LENGTH_SHORT).show();
+            views.setTextViewText(R.id.time_update,
+                    context.getResources().getString(
+                            R.string.time, timeString));
+            //Toast.makeText(context, timeString, Toast.LENGTH_SHORT).show();
 //Thay doi textview trang thai, nhiet do//
-        views.setTextViewText(R.id.condition, context.getResources().getString(R.string.text_condition, tvCondition));
-        views.setTextViewText(R.id.temperature,
-                context.getResources().getString(
-                        R.string.text_temperature, tvTempC) + "°C");
+            views.setTextViewText(R.id.condition, context.getResources().getString(R.string.text_condition, tvCondition));
+            views.setTextViewText(R.id.temperature,
+                    context.getResources().getString(
+                            R.string.text_temperature, tvTempC) + "°C");
 //Thay doi textview do am//
-        views.setTextViewText(R.id.humidity,"Humidity: "+
-                context.getResources().getString(R.string.text_humidity, tvHumidity)+"%");
-        Intent intentUpdate = new Intent(context, WeatherWidget.class);
-        intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-        int[] idArray = new int[]{appWidgetId};
-        intentUpdate.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, idArray);
-        PendingIntent pendingUpdate = PendingIntent.getBroadcast(
-                context, appWidgetId, intentUpdate,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        Intent intentOpenApp = new Intent(context, MainActivity.class);
-        PendingIntent pendingOpenApp = PendingIntent.getActivity(context, 0, intentOpenApp, PendingIntent.FLAG_IMMUTABLE);
-        views.setOnClickPendingIntent(R.id.time_update, pendingUpdate);
-        views.setOnClickPendingIntent(R.id.imageView3, pendingUpdate);
-        views.setOnClickPendingIntent(R.id.place, pendingOpenApp);
-        views.setOnClickPendingIntent(R.id.imageView, pendingOpenApp);
-        views.setOnClickPendingIntent(R.id.humidity, pendingOpenApp);
-        views.setOnClickPendingIntent(R.id.temperature, pendingOpenApp);
-        views.setOnClickPendingIntent(R.id.layout, pendingOpenApp);
-        appWidgetManager.updateAppWidget(appWidgetId, views);
-    }catch (JSONException e) {
-        e.printStackTrace();
-    }
+            views.setTextViewText(R.id.humidity,"Humidity: "+
+                    context.getResources().getString(R.string.text_humidity, tvHumidity)+"%");
+            Intent intentUpdate = new Intent(context, WeatherWidget.class);
+            intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+            int[] idArray = new int[]{appWidgetId};
+            intentUpdate.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, idArray);
+            PendingIntent pendingUpdate = PendingIntent.getBroadcast(
+                    context, appWidgetId, intentUpdate,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent intentOpenApp = new Intent(context, MainActivity.class);
+            PendingIntent pendingOpenApp = PendingIntent.getActivity(context, 0, intentOpenApp, PendingIntent.FLAG_IMMUTABLE);
+            views.setOnClickPendingIntent(R.id.time_update, pendingUpdate);
+            views.setOnClickPendingIntent(R.id.imageView3, pendingUpdate);
+            views.setOnClickPendingIntent(R.id.place, pendingOpenApp);
+            views.setOnClickPendingIntent(R.id.imageView, pendingOpenApp);
+            views.setOnClickPendingIntent(R.id.humidity, pendingOpenApp);
+            views.setOnClickPendingIntent(R.id.temperature, pendingOpenApp);
+            views.setOnClickPendingIntent(R.id.layout, pendingOpenApp);
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+        }catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
