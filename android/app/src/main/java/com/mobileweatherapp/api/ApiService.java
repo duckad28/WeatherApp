@@ -12,7 +12,7 @@ import retrofit2.http.Query;
 
 public interface ApiService {
 
-    //https://api.weatherapi.com/v1/forecast.json?key=7c087e009aa9405791065629241206&q=Ha%20noi&days=7
+    //https://api.weatherapi.com/v1/forecast.json?key=&q=Ha%20noi&days=7
     Gson gson = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd HH:mm")
             .create();
