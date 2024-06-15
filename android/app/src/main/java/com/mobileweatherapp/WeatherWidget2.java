@@ -128,7 +128,6 @@ public class WeatherWidget2 extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             callApi(context);
             updateAppWidget(context, appWidgetManager, appWidgetId);
-            Toast.makeText(context, "Widget2 has been updated! ", Toast.LENGTH_SHORT).show();
         }
     }
 

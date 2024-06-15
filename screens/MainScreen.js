@@ -126,10 +126,14 @@ const MainScreen = (props) => {
                                 return weathers;
                             })
                             .then((data) => {
-                                setWeatherDatas(data);
-                                storeLocationData('weathers', data);
-                                storeLocationData('CurrentLocation', data[0]);
-                                setCurrentLocation(data[0]);
+                                if (currentLocation && currentLocation?.location == data[0]?.location?.name) {
+                                } else {
+                                    setWeatherDatas(data);
+                                    storeLocationData('weathers', data);
+                                    storeLocationData('CurrentLocation', data[0]);
+                                    setCurrentLocation(data[0]);
+                                }
+                                
                             })
                     }
                 }
@@ -232,7 +236,7 @@ const MainScreen = (props) => {
         let isPermission = await getData('LocationPermission');
         let curloc = await getLocationData('CurrentLocation');
         setLocationPermission(isPermission == "true");
-        if (isPermission == "true" && weatherDatas && weatherDatas.length !=0 && !curloc) {
+        if (isPermission == "true" && weatherDatas && weatherDatas.length !=0) {
             handleAccessLocation();
         } 
         
@@ -376,7 +380,7 @@ const MainScreen = (props) => {
                         }
 
 
-
+                        let isCurloc = weatherDataItem?.item?.curloc;
                         let current_temperature = current_weather?.temp_c;
                         let max_temperature = Math.round(weatherDataItem?.item?.forecastData[i_day]?.day?.maxtemp_c);
                         let min_temperature = Math.round(weatherDataItem?.item?.forecastData[i_day]?.day?.mintemp_c);
@@ -541,9 +545,9 @@ const MainScreen = (props) => {
                                                 justifyContent: 'center',
                                                 marginTop: 10
                                             }}>
-                                                <FontAwesomeIcon icon={faLocationArrow} size={fontSizes.iconSizeM} color={colors.textColor}></FontAwesomeIcon>
+                                                <FontAwesomeIcon icon={faLocationArrow} size={fontSizes.iconSizeM} color={isCurloc ? colors.textColor : colors.buttonColor}></FontAwesomeIcon>
                                                 <View style={{ width: 10 }}></View>
-                                                <FontAwesomeIcon icon={faCircle} size={fontSizes.iconSizeSSS} color={colors.textColor}></FontAwesomeIcon>
+                                                <FontAwesomeIcon icon={faCircle} size={fontSizes.iconSizeSSS} color={!isCurloc ? colors.textColor : colors.buttonColor}></FontAwesomeIcon>
                                             </View>
                                         </View>
                                     </View>

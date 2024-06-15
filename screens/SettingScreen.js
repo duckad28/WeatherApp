@@ -19,7 +19,7 @@ import notifee, { EventType, AndroidStyle } from '@notifee/react-native';
 const en = ['Settings','General', 'Language', 'Temperature Units', 'Notifications', 'Update at night automatically', 'Update weather info at different times of the day'];
 const vn = ['Cài đặt','Thông tin chung', 'Ngôn ngữ', 'Đơn vị nhiệt độ', 'Thông báo', 'Cập nhật tự động vào buổi tối', 'Cập nhật thông tin thời tiết vào các khung giờ trong ngày']
 
-import { onDisplayNotification, onCreateTriggerNotification } from '../utilities/pushNoti';
+import { onDisplayNotification, onCreateTriggerNotification, createNoti } from '../utilities/pushNoti';
 
 
 const SettingScreen = (props) => {
@@ -63,8 +63,12 @@ const SettingScreen = (props) => {
     const [isEnabled, setIsEnabled] = useState(true);
     
     const toggleSwitch = () => {
+        if (!isEnabled) {
+            createNoti();
+        } else {
+            notifee.cancelAllNotifications();
+        }
         setIsEnabled(previousState => !previousState);
-        onDisplayNotification();
     };
 
     useEffect(() => {
