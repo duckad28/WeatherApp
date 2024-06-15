@@ -9,7 +9,7 @@ import {
     Image, StyleSheet
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowLeft, faPlus, faSearch, faMinusCircle, faWifi, faTrashCan, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlus, faSearch, faMinusCircle, faWifi, faTrashCan, faCheck, faLocation } from '@fortawesome/free-solid-svg-icons';
 import { LocationItem } from '../components';
 import { colors } from '../constants';
 import { fetchSuggestLocation, fetchForecast } from '../repositories/fetchData';
@@ -33,7 +33,6 @@ const LocationScreen = (props) => {
 
     let [searchText, setSearchText] = useState('');
     let [searching, setSearching] = useState(false);
-    let [locationData, setLocationData] = useState([]);
     let [weatherData, setWeatherData] = useState([]);
     let [suggestLocations, setSuggestLocations] = useState([]);
     let [searchLocation, setSearchLocation] = useState({});
@@ -42,11 +41,11 @@ const LocationScreen = (props) => {
 
     const handlePress = () => {
 
-        if (locationData.length == 0) {
+        if (weatherData.length == 0) {
             BackHandler.exitApp();
         }
         if (isChange > 0) {
-            navigate('MainScreen', { newLocations: locationData, newWeatherData: weatherData, lang: route?.params?.lang, unit: route?.params?.unit });
+            navigate('MainScreen', {newWeatherData: weatherData, lang: route?.params?.lang, unit: route?.params?.unit });
         } else {
             navigate('MainScreen', { lang: route?.params?.lang, unit: route?.params?.unit })
         }
@@ -55,26 +54,13 @@ const LocationScreen = (props) => {
     const handleRemoveLocation = (item) => {
         let newWeatherData = weatherData.filter(remainItem => remainItem !== item);
         if (newWeatherData.length == 0) {
-            storeLocationData('locations', []);
             storeLocationData('weathers', []);
             setWeatherData([]);
-            setLocationData([]);
             setIsChange(++isChange);
         } else {
-            let newLocationData = weatherData.map((item) => {
-                return {
-                    location: item?.location,
-                    country: item?.country
-                }
-
-            })
-            if (newLocationData) {
-                storeLocationData('locations', newLocationData);
                 storeLocationData('weathers', newWeatherData);
                 setWeatherData(newWeatherData);
-                setLocationData(newLocationData);
                 setIsChange(++isChange);
-            }
         }
 
     }
@@ -102,22 +88,14 @@ const LocationScreen = (props) => {
     }
     const handleAddLocation = async (loc) => {
         if (loc) {
-            if (!locationData.some(e => (e.location === loc?.name && e.country === loc?.country))) {
+            if (!weatherData.some(e => (e?.location === loc?.name && e?.country === loc?.country))) {
                 if (searchLocation?.location == loc?.name && loc?.country == searchLocation?.coutry) {
-                    let temp = [...locationData, { location: loc?.name, country: loc?.country }];
-                    storeLocationData('locations', temp);
-                    setLocationData(temp);
                     setWeatherData([...weatherData, searchLocation]);
                     setIsChange(++isChange);
                 } else {
-                    let temp = [...locationData, { location: loc?.name, country: loc?.country }];
-                    if (temp) {
-                        fetchNewLocation(loc);
-                        storeLocationData('locations', temp)
-                        setLocationData(temp);
-                        setIsChange(++isChange);
-                        await delay(1500);
-                    }
+                    fetchNewLocation(loc);
+                    setIsChange(++isChange);
+                    await delay(1500);
                 }
             }
         }
@@ -130,6 +108,7 @@ const LocationScreen = (props) => {
                 setSearchLocation({
                     location: data?.location?.name,
                     country: data?.location?.country,
+                    curloc: false,
                     fetch_time: now.valueOf(),
                     local_time: data?.location?.localtime,
                     imageBackground: (data?.current?.is_day == 1) ? images.image7 : images.image8,
@@ -173,15 +152,11 @@ const LocationScreen = (props) => {
 
     useEffect(() => {
         if (route?.params?.weatherData) {
-            setLocationData(route?.params?.weatherData.map((item) => {
-                return { location: item?.location, country: item?.country }
-            }))
             setWeatherData(route?.params?.weatherData);
         } else {
             setSearching(true);
         }
     }, [route?.params?.weatherData])
-
 
 
 
@@ -243,9 +218,10 @@ const LocationScreen = (props) => {
                         <FlatList data={weatherData}
                             showsVerticalScrollIndicator={false}
                             renderItem={({ item, index }) => {
+                                let curloc = item?.curloc;
                                 const rightSwipe = () => {
                                     return (
-                                        <View style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: '#00000020', marginVertical: 20, marginHorizontal: 5, paddingHorizontal: 10, borderRadius: 10 }}>
+                                        !curloc && <View style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: '#00000020', marginVertical: 20, marginHorizontal: 5, paddingHorizontal: 10, borderRadius: 10 }}>
                                             <TouchableOpacity
                                                 onPress={() => { handleRemoveLocation(item) }}>
                                                 <FontAwesomeIcon
@@ -265,9 +241,10 @@ const LocationScreen = (props) => {
                                             justifyContent: 'center',
                                             alignItems: 'center'
                                         }}>
-                                            <LocationItem eachLocation={item} unit={route?.params?.unit} onPress={() => {
+                                            <LocationItem eachLocation={item} unit={route?.params?.unit}
+                                            onPress={() => {
                                                 if (isChange > 0) {
-                                                    navigate('MainScreen', { toIndex: index, newLocations: locationData, newWeatherData: weatherData, lang: route?.params?.lang, unit: route?.params?.unit });
+                                                    navigate('MainScreen', { toIndex: index, newWeatherData: weatherData, lang: route?.params?.lang, unit: route?.params?.unit });
                                                 } else {
                                                     navigate('MainScreen', { toIndex: index, lang: route?.params?.lang, unit: route?.params?.unit });
                                                 }
@@ -331,7 +308,7 @@ const LocationScreen = (props) => {
                         alignItems: 'center', height: 50, justifyContent: 'center'
                     }}
                 >
-                    <Text>{lan[2]}</Text>
+                    <Text style={{fontWeight: '900'}}>{lan[2]}</Text>
                 </TouchableOpacity>
             </View>
             <View style={{ height: 10 }}></View>
@@ -341,7 +318,7 @@ const LocationScreen = (props) => {
                         <View>
                             {
                                 suggestLocations.map((loc, index) => {
-                                    let added = locationData.some(e => (e.location === loc?.name && e.country === loc?.country));
+                                    let added = weatherData.some(e => (e?.location === loc?.name && e?.country === loc?.country));
                                     return (
                                         <View key ={index} style={{padding: 10}}>
                                             <TouchableOpacity

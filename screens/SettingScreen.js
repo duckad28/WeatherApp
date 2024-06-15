@@ -16,8 +16,8 @@ import { getLocationData, storeLocationData } from '../utilities/locationStorage
 import PushNotification from 'react-native-push-notification';
 import notifee, { EventType, AndroidStyle } from '@notifee/react-native';
 
-const en = ['Settings','General', 'Language', 'Temperature Units', 'Notifications', 'Update at night automatically', 'Update weather info between 23:00 and 07:00'];
-const vn = ['Cài đặt','Thông tin chung', 'Ngôn ngữ', 'Đơn vị nhiệt độ', 'Thông báo', 'Cập nhật tự động vào buổi tối', 'Cập nhật thông tin thời tiết giữa 23 giờ và 7 giờ sáng']
+const en = ['Settings','General', 'Language', 'Temperature Units', 'Notifications', 'Update at night automatically', 'Update weather info at different times of the day'];
+const vn = ['Cài đặt','Thông tin chung', 'Ngôn ngữ', 'Đơn vị nhiệt độ', 'Thông báo', 'Cập nhật tự động vào buổi tối', 'Cập nhật thông tin thời tiết vào các khung giờ trong ngày']
 
 import { onDisplayNotification, onCreateTriggerNotification } from '../utilities/pushNoti';
 
@@ -60,13 +60,11 @@ const SettingScreen = (props) => {
             isSelected: !route?.params?.unit
         },
     ]);
-    const [isEnabled, setIsEnabled] = useState(false);
+    const [isEnabled, setIsEnabled] = useState(true);
     
     const toggleSwitch = () => {
         setIsEnabled(previousState => !previousState);
         // handleNotification();
-        onDisplayNotification();
-        onCreateTriggerNotification();
     };
 
     useEffect(() => {
@@ -88,6 +86,13 @@ const SettingScreen = (props) => {
         })
     }, [temperatures])
 
+    const getNotiEn = async () => {
+        let enable = await getData('NotificationEnabled');
+        setIsEnabled(enable == 'true');
+    }
+    useEffect(() => {
+        getNotiEn();
+    }, [])
     return (
         <View style={{
             backgroundColor: 'white',
@@ -106,6 +111,7 @@ const SettingScreen = (props) => {
             </ModalSetting>
             <TouchableOpacity
                 onPress={() => {
+                    storeData('NotificationEnabled', isEnabled + "");
                     navigate('MainScreen', {unit: isC, lang: isE})}
                     }
                 style={{ height: 40 }}>

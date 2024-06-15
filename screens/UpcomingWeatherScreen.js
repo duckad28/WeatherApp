@@ -9,8 +9,21 @@ import DayInfoScreen from './DayInfoScreen';
 import TextTicker from 'react-native-text-ticker';
 import { TabView, TabBar } from 'react-native-tab-view';
 
-const en = ['Weather Forecast', 'DAYS', 'HOURS'];
-const vn = ['Dự báo thời tiết', 'Theo ngày', 'Theo giờ'];
+import {
+    LineChart,
+    BarChart,
+    PieChart,
+    ProgressChart,
+    ContributionGraph,
+    StackedBarChart
+} from "react-native-chart-kit";
+
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
+
+const en = ['Weather Forecast', 'DAYS', 'HOURS', 'Humidity', 'Rain precipation', 'UV index'];
+const vn = ['Dự báo thời tiết', 'Theo ngày', 'Theo giờ', 'Độ ẩm', 'Lượng mưa', 'Chỉ số UV'];
 const dayOfWeeksVn = {
     'Monday': 'Thứ hai',
     'Tuesday': 'Thứ ba',
@@ -21,6 +34,87 @@ const dayOfWeeksVn = {
     'Sunday': 'Chủ nhật',
     'Today': 'Hôm nay'
 }
+
+const UpcomingWeatherScreen = (props) => {
+    const { navigation } = props;
+    const { navigate } = navigation;
+    const { route } = props;
+    let lang = route?.params?.lang;
+    let lan = route?.params?.lang ? en : vn;
+    let weatherData = route?.params?.data;
+    let day = route?.params?.day;
+    let unit = route?.params?.unit;
+    let imageBackground = route?.params?.background;
+    let max = Math.max.apply(Math, weatherData.map(function (weather) {
+        return weather?.day?.maxtemp_c;
+    }))
+    let min = Math.min.apply(Math, weatherData.map(function (weather) {
+        return weather?.day?.mintemp_c;
+    }))
+
+
+
+    const windowWidth = Dimensions.get('window').width;
+    // let hourlyData = weatherData.reduce((acc, ele) => acc.concat(ele?.hour), [])
+
+
+    const [routes] = useState([
+        { key: 'second', title: lan[2] },
+        { key: 'first', title: lan[1] },
+    ]);
+
+    const [index, setIndex] = React.useState(0);
+    return (
+
+        <ImageBackground source={imageBackground} style={{ flex: 1 }}>
+            <View style={{ flex: 1, padding: 10 }}>
+                <TouchableOpacity
+                    onPress={() => navigate('MainScreen', { lang: route?.params?.lang, unit: route?.params?.unit })}
+                    style={{ height: 40 }}
+                >
+                    <FontAwesomeIcon icon={faArrowLeft} size={26} color={colors.textColor}></FontAwesomeIcon>
+                </TouchableOpacity>
+
+                <View style={{ height: 60 }}>
+                    <Text style={{ fontSize: 30, color: colors.textColor }}>{lan[0]}</Text>
+                </View>
+
+                <TabView
+                    renderTabBar={props => <TabBar {...props}
+                        onTabPress={({ route, preventDefault }) => {
+                            preventDefault();
+                        }}
+                        style={{ marginBottom: 20, backgroundColor: null, }}
+                        renderLabel={({ route, focused, color }) => (
+                            <View style={{
+                                flex: 1, width: windowWidth / 2 - 10, justifyContent: 'center', alignItems: 'center',
+                                border: 3, borderColor: 'black'
+                            }}>
+                                <Text style={textStyle}>
+                                    {route.title}
+                                </Text>
+                            </View>
+                        )}
+                        indicatorStyle={{ backgroundColor: 'white' }} />}
+                    navigationState={{ index, routes }}
+                    renderScene={({ route }) => {
+                        switch (route.key) {
+                            case 'first':
+                                return FirstRoute({ day: day, unit: unit, weatherData: weatherData, lan: lan, lang: lang, max: max, min: min });
+                            case 'second':
+                                return SecondRoute({ day: day, unit: unit, weatherData: weatherData, lan: lan, lang: lang });
+                            default: break;
+                        }
+                    }}
+                    onIndexChange={setIndex}
+                    initialLayout={{ width: windowWidth }}
+                />
+            </View>
+        </ImageBackground>
+
+    )
+}
+
 
 const WeatherInfoHorizontal = (props) => {
     let { temp_c, time, condition, daily_chance_of_rain } = props.weatherInfo;
@@ -76,7 +170,6 @@ const WeatherInfoHorizontal = (props) => {
 const SecondRoute = ({ lan, day, unit, weatherData, lang }) => {
     let [weatherInfo, setWeatherInfo] = useState({});
     let [isModalVisible, setModalVisble] = useState(false);
-    console.log(lang);
 
     return (
         <View style={{ flex: 1 }}>
@@ -126,107 +219,135 @@ const SecondRoute = ({ lan, day, unit, weatherData, lang }) => {
     )
 }
 
-const FirstRoute = ({ lan, day, unit, weatherData, lang }) => {
+const FirstRoute = ({ lan, day, unit, weatherData, lang, max, min }) => {
+    let days = weatherData.map(item => getDayOfWeek(item.date));
+    let humids = weatherData.map(item => item?.day?.avghumidity);
+    let precips = weatherData.map(item => item?.day?.totalprecip_mm);
+    let uvs = weatherData.map(item => item?.day?.uv);
+    let data = [
+        {
+            title: lan[3],
+            labels: days,
+            datasets: [
+                {
+                    data: humids
+                }
+            ],
+            yLabel: '%',
+        },
+        {
+            title: lan[4],
+            labels: days,
+            datasets: [
+                {
+                    data: precips
+                }
+            ],
+            yLabel: 'mm',
+        }
+        ,
+        {
+            title: lan[5],
+            labels: days,
+            datasets: [
+                {
+                    data: uvs
+                }
+            ],
+            yLabel: null,
+        }
+    ]
+    const chartConfig = {
+        backgroundGradientFrom: "#00d4ff05",
+        backgroundGradientFromOpacity: 0,
+        backgroundGradientTo: "#09a9e905",
+        backgroundGradientToOpacity: 0,
+        color: () => '#ffffff',
+        strokeWidth: 2, // optional, default 3
+        barPercentage: 0.9,
+        useShadowColorFromDataset: false // optional
+    };
 
-    let max = Math.max.apply(Math, weatherData.map(function (weather) {
-        return weather?.day?.maxtemp_c;
-    }))
-    let min = Math.min.apply(Math, weatherData.map(function (weather) {
-        return weather?.day?.mintemp_c;
-    }))
     return (
-        <View style={{ height: 400, flexDirection: 'row', marginTop: 20 }}>
-            <FlatList data={weatherData}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                renderItem={({ item, index }) => {
-                    return <WeatherInfoV
-                        unit={unit}
-                        weatherInfo={item}
-                        max={max}
-                        min={min}
-                        today={day == index}
-                        lang={lang}
-                    ></WeatherInfoV>
+        <ScrollView nestedScrollEnabled={true} style={{}} showsVerticalScrollIndicator={false}>
+            <View style={{ height: 400, flexDirection: 'row', marginTop: 20 }}>
+                <FlatList
+                    data={weatherData}
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={false}
+                    renderItem={({ item, index }) => {
+                        return <WeatherInfoV
+                            unit={unit}
+                            weatherInfo={item}
+                            max={max}
+                            min={min}
+                            today={day == index}
+                            lang={lang}
+                        ></WeatherInfoV>
+                    }}
+                    keyExtractor={item => item.date}>
+                </FlatList>
+            </View>
+            <View style={{ height: 50 }}></View>
+            <FlatList
+                data={data}
+                renderItem={({ item }) => {
+                    return (
+                        <View
+                            style={{ marginTop: 20, gap: 20 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: 1, borderColor: colors.borderColor }}>
+                                <Text style={{ fontSize: fontSizes.h4, color: colors.textColor, textAlignVertical: 'center', marginVertical: 10 }}>
+                                    {item?.title}
+                                </Text>
+                                <Text style={{ fontSize: fontSizes.h4, color: colors.textColor, textAlignVertical: 'center', marginVertical: 10 }}>
+                                    {item?.yLabel && ("(" + item?.yLabel + ")")}
+                                </Text>
+                            </View>
+
+                            <ScrollView 
+                                style={{paddingVertical: 20}}
+                                nestedScrollEnabled={true} horizontal={true}
+                                showsHorizontalScrollIndicator={false}>
+                                <LineChart
+                                    bezier
+                                    data={item}
+                                    width={windowWidth * 1.5}
+                                    height={300}
+                                    chartConfig={chartConfig}
+                                    withInnerLines={false}
+                                    fromZero={true}
+                                    withVerticalLabels={true}
+                                    withHorizontalLabels={false}
+                                    style={{ paddingRight: 10 }}
+                                    renderDotContent={({ x, y, index }) => {
+                                        return (
+                                          <View
+                                            style={{
+                                              height: 30,
+                                              width: 30,
+                                              position: "absolute",
+                                              top: y - 16, // <--- relevant to height / width (
+                                              left: x - 8, // <--- width / 2
+                                            }}
+                                          >
+                                            <Text style={{ fontSize: 10, color: 'white' }}>{item?.datasets[0]?.data[index]}</Text>
+                                          </View>
+                                        );
+                                      }}
+                                />
+                            </ScrollView>
+                        </View>
+                    )
                 }}
-                keyExtractor={item => item.date}>
+                keyExtractor={(item, index) => index}>
 
             </FlatList>
 
-        </View>
+
+        </ScrollView>
     )
 }
 
-
-const UpcomingWeatherScreen = (props) => {
-    const { navigation } = props;
-    const { navigate } = navigation;
-    const { route } = props;
-    let lang = route?.params?.lang;
-    let [lan, setLan] = useState(route?.params?.lang ? en : vn);
-    let weatherData = route.params.data;
-    let day = route.params.day;
-    let unit = route.params.unit;
-    let imageBackground = route.params.background;
-
-    const windowWidth = Dimensions.get('window').width;
-    // let hourlyData = weatherData.reduce((acc, ele) => acc.concat(ele?.hour), [])
-
-    const [index, setIndex] = React.useState(1);
-    const [routes] = useState([
-        { key: 'first', title: lan[1] },
-        { key: 'second', title: lan[2] },
-    ]);
-
-    return (
-
-        <ImageBackground source={imageBackground} style={{ flex: 1 }}>
-            <View style={{ flex: 1, padding: 10 }}>
-                <TouchableOpacity
-                    onPress={() => navigate('MainScreen', { lang: route?.params?.lang, unit: route?.params?.unit })}
-                    style={{ height: 40 }}
-                >
-                    <FontAwesomeIcon icon={faArrowLeft} size={26} color={colors.textColor}></FontAwesomeIcon>
-                </TouchableOpacity>
-
-                <View style={{ height: 60 }}>
-                    <Text style={{ fontSize: 30, color: colors.textColor }}>{lan[0]}</Text>
-                </View>
-
-                <TabView
-                    renderTabBar={props => <TabBar {...props}
-                    onTabPress={({ route, preventDefault }) => {
-                          preventDefault();
-                      }}
-                    style={{marginBottom: 20, backgroundColor: null,}}
-                        renderLabel={({ route, focused, color }) => (
-                            <View style={{flex: 1,  width: windowWidth/2 - 10, justifyContent: 'center', alignItems: 'center',
-                                border: 3, borderColor: 'black'
-                            }}>
-                                <Text style={textStyle}>
-                                    {route.title}
-                                </Text>
-                            </View>
-                        )}
-                        indicatorStyle={{ backgroundColor: 'white' }} />}
-                    navigationState={{ index, routes }}
-                    renderScene={({ route }) => {
-                        switch (route.key) {
-                            case 'first':
-                                return FirstRoute({ day: day, unit: unit, weatherData: weatherData, lan: lan, lang: lang });
-                            case 'second':
-                                return SecondRoute({ day: day, unit: unit, weatherData: weatherData, lan: lan, lang: lang });
-                            default: break;
-                        }
-                    }}
-                    onIndexChange={setIndex}
-                    initialLayout={{ width: windowWidth }}
-                />
-            </View>
-        </ImageBackground>
-
-    )
-}
 
 const wrapperStyle = StyleSheet.create({
     flexGrow: 0,

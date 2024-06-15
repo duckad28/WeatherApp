@@ -4,7 +4,8 @@ const apiKey = '7c087e009aa9405791065629241206';
 
 const locationSuggestEndpoint = params => `http://api.weatherapi.com/v1/search.json?key=9a9dcb14233e4d9aad5142530242004&q=${params.cityName}`;
 const forecastEndpoint = params => `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${params.cityName}&days=7&aqi=yes&alerts=no`;
-const geoEndpoint = params => `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${params.lat},${params.long}&lang=vi-VI&apiKey=TRDm5IbmNOYHbJTMzgZe7KpozT9EZOMYNt2VFTu3Fos`;
+const coordEndpoint = params => `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${params.lat},${params.lon}&days=7&aqi=yes&alerts=no`;
+const geoEndpoint = params => `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${params.lat},${params.long}&lang=en-EN&apiKey=TRDm5IbmNOYHbJTMzgZe7KpozT9EZOMYNt2VFTu3Fos`;
 const apiCall = async (endpoint) => {
     const options = {
         method: 'GET',
@@ -31,4 +32,8 @@ export const fetchForecast = params => {
 
 export const fetchGeo = params => {
     return apiCall(geoEndpoint(params));
+}
+
+export const fetchForecastCoord = params => {
+    return apiCall(coordEndpoint(params));
 }
