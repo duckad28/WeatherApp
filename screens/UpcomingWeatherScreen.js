@@ -339,7 +339,7 @@ const FirstRoute = ({ lan, day, unit, weatherData, lang, max, min }) => {
                         </View>
                     )
                 }}
-                keyExtractor={(item, index) => index}>
+                keyExtractor={(item, index) => item?.title}>
 
             </FlatList>
 
