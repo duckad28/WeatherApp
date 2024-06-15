@@ -64,7 +64,7 @@ const SettingScreen = (props) => {
     
     const toggleSwitch = () => {
         setIsEnabled(previousState => !previousState);
-        // handleNotification();
+        onDisplayNotification();
     };
 
     useEffect(() => {

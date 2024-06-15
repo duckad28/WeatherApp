@@ -17,7 +17,17 @@ import {
     Platform, Easing
 } from 'react-native';
 
-import { SmallButton, BigTemperature, Temperature, WeatherInfoH, Button, WeatherHourlyV, ExtraInfoItem,Rain } from '../components';
+import {
+    SmallButton,
+    BigTemperature,
+    Temperature,
+    WeatherInfoH,
+    Button,
+    WeatherHourlyV,
+    ExtraInfoItem, 
+    Rain,
+    Snow 
+} from '../components';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import LottieView from 'lottie-react-native';
 
@@ -37,8 +47,8 @@ import BackgroundService from 'react-native-background-actions';
 import TextTicker from 'react-native-text-ticker';
 
 
-const en = ['Allow Weather to access your location', 'Daily Forecast', '24 Hours Forecast', 'Sun', 'Moon', 'Rise', 'Set', 'Humidity', 'Pressure', 'Real feel'];
-const vn = ['Cho phép truy cập vào vị trí của bạn', 'Dự báo theo ngày', 'Dự báo thời tiết trong ngày', 'Mặt trời', 'Mặt trăng',  'Mọc', 'Lặn', 'Độ ẩm', 'Áp suất', 'Cảm nhận'];
+const en = ['Allow Weather to access your location', 'Daily Forecast', '24 Hours Forecast', 'Sun', 'Moon', 'Rise', 'Set', 'Humidity', 'Pressure', 'Real feel', 'Today', 'Tomorrow'];
+const vn = ['Cho phép truy cập vào vị trí của bạn', 'Dự báo theo ngày', 'Dự báo thời tiết trong ngày', 'Mặt trời', 'Mặt trăng',  'Mọc', 'Lặn', 'Độ ẩm', 'Áp suất', 'Cảm nhận', 'Hôm nay', 'Ngày mai'];
 const SharedWidget = NativeModules.SharedWidget;
 
 const MainScreen = (props) => {
@@ -399,7 +409,7 @@ const MainScreen = (props) => {
                         let brief_forcast = [
                             {
                                 date: weatherDataItem?.item?.forecastData[i_day % 7].date,
-                                dayOfWeeks: 'Today',
+                                dayOfWeeks: lang[10],
                                 highestTemp: Math.round(weatherDataItem?.item?.forecastData[i_day % 7].day.maxtemp_c),
                                 lowestTemp: Math.round(weatherDataItem?.item?.forecastData[i_day % 7].day.mintemp_c),
                                 weather: weatherDataItem?.item?.forecastData[i_day % 7].day.condition.text,
@@ -407,7 +417,7 @@ const MainScreen = (props) => {
                             },
                             {
                                 date: weatherDataItem?.item?.forecastData[(i_day + 1) % 7].date,
-                                dayOfWeeks: 'Tomorrow',
+                                dayOfWeeks: lang[11],
                                 highestTemp: Math.round(weatherDataItem?.item?.forecastData[(i_day + 1) % 7].day.maxtemp_c),
                                 lowestTemp: Math.round(weatherDataItem?.item?.forecastData[(i_day + 1) % 7].day.mintemp_c),
                                 weather: weatherDataItem?.item?.forecastData[(i_day + 1) % 7].day.condition.text,
@@ -470,6 +480,11 @@ const MainScreen = (props) => {
                             if (temp_var2) {
                                 image_background = images.image4;
                             }                
+                        }
+                        let is_snowing = false;
+                        if (current_weather?.condition?.text.toLowerCase().includes("snow")) {
+                            is_raining = false;
+                            is_snowing = true;
                         }
                         return (
                             <View style={{ width: windowWidth }}>
@@ -556,6 +571,7 @@ const MainScreen = (props) => {
                                                 height: 400
                                             }}>
                                                 {is_raining && <Rain fullScreen={false} rainCount={20} fallSpeed="slow" />}
+                                                {is_snowing && <Snow fullScreen={false} rainCount={20} fallSpeed="slow" />}
                                                 <View style={{
                                                     flex: 1,
                                                     marginTop: 40,
@@ -573,10 +589,10 @@ const MainScreen = (props) => {
                                                         ...commonStyle1,
                                                         justifyContent: 'center'
                                                     }}>
-                                                        {isLongText ? <TextTicker scrollSpeed={isLongText ? 40 : 0} loop={isLongText} numberOfLines={1} style={{
+                                                        {isLongText ? <TextTicker scrollSpeed={isLongText ? 40 : 0} loop={true} numberOfLines={1} style={{
                                                                 color: colors.textColor,
                                                                 fontSize: fontSizes.h4,
-                                                                width: 140
+                                                                width: 120
                                                             }}>
                                                         {current_weather_condition}
                                                         </TextTicker>
