@@ -6,4 +6,11 @@
     <string name="text_humidity">%s</string>
     <string name="text_aqi">%s</string>
     <string name="time">%1$s</string>
+
+    <string name="text_temperature1">%s</string>
+    <string name="text_temperature2">%s</string>
+    <string name="text_temperature3">%s</string>
+    <string name="text_temperature4">%s</string>
+    <string name="text_temperature5">%s</string>
+    <string name="text_temperature6">%s</string>
 </resources>
