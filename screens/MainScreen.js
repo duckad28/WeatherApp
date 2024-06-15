@@ -126,14 +126,10 @@ const MainScreen = (props) => {
                                 return weathers;
                             })
                             .then((data) => {
-                                if (currentLocation && currentLocation?.location == data[0]?.location?.name) {
-                                } else {
-                                    setWeatherDatas(data);
-                                    storeLocationData('weathers', data);
-                                    storeLocationData('CurrentLocation', data[0]);
-                                    setCurrentLocation(data[0]);
-                                }
-                                
+                                setWeatherDatas(data);
+                                storeLocationData('weathers', data);
+                                storeLocationData('CurrentLocation', data[0]);
+                                setCurrentLocation(data[0]);
                             })
                     }
                 }
@@ -236,7 +232,7 @@ const MainScreen = (props) => {
         let isPermission = await getData('LocationPermission');
         let curloc = await getLocationData('CurrentLocation');
         setLocationPermission(isPermission == "true");
-        if (isPermission == "true" && weatherDatas && weatherDatas.length !=0) {
+        if (isPermission == "true" && weatherDatas && weatherDatas.length !=0 && !curloc) {
             handleAccessLocation();
         } 
         
@@ -298,6 +294,7 @@ const MainScreen = (props) => {
                     let t = weatherDatas.filter(item => item.curloc);
                     let text = t[0]?.location;
                     storeLocationData('noti', t[0]);
+                    console.log(text);
                     handleSendWg(text);
                 }
                 else {
