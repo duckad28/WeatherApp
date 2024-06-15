@@ -154,7 +154,7 @@ const AqiScreen = (props) => {
                 marginHorizontal: 10,
                 marginVertical: 10
             }}>
-                <TouchableOpacity onPress={() => navigate('MainScreen')} style={{ height: 40 }}>
+                <TouchableOpacity onPress={() => navigate('MainScreen', {lang: route?.params?.lang, unit: route?.params?.unit})} style={{ height: 40 }}>
                     <FontAwesomeIcon icon={faArrowLeft} size={26}></FontAwesomeIcon>
                 </TouchableOpacity>
                 <View style={{

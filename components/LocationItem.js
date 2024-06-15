@@ -11,7 +11,7 @@ import backgroundServer from 'react-native-background-actions';
 
 
 const LocationItem = (props) => {
-    let {location, currentData, imageBackground} = props.eachLocation;
+    let {location, currentData, imageBackground, curloc} = props.eachLocation;
     let {unit} = props;
     let current_temperature = unit ? Math.round(currentData?.temp_c) : cToF(currentData?.temp_c);
     let onPress = props.onPress;
@@ -33,13 +33,14 @@ const LocationItem = (props) => {
 
                 <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around'}}>
                     <View 
-                        style={{flex: 1, justifyContent: 'flex-start'}}
+                        style={{flex: 1, justifyContent: 'flex-start', flexDirection: 'row', gap: 10, alignItems: 'center'}}
                     >
                         <Text 
                             style={textstyle}
                         >
                             {location}
                         </Text>
+                        {curloc && <FontAwesomeIcon icon={faLocationPin} size={15} color='white'></FontAwesomeIcon>}
                     </View>
                         
                     <Text 
