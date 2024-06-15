@@ -23,7 +23,7 @@ public interface ApiService {
             .build()
             .create(ApiService.class);
 
-    @GET("v1/current.json")
+    @GET("v1/forecast.json")
     Call<Currency> getDataAPI(@Query("key") String key,
                               @Query("q") String q,
                               @Query("days") int days);

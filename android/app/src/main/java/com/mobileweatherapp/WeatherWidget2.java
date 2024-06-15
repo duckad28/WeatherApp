@@ -18,7 +18,7 @@ import android.content.Intent;
 import com.bumptech.glide.Glide;
 import com.mobileweatherapp.api.ApiService;
 import com.mobileweatherapp.model.Currency;
-import com.mobileweatherapp.model.ForecastDay;
+import com.mobileweatherapp.model.DuBaoCacNgay;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -69,12 +69,12 @@ public class WeatherWidget2 extends AppWidgetProvider {
 //Thay doi textview dia diem
             views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_condition, appData.getString("text")));
 //Thay doi image
-            views.setImageViewResource(R.id.imageView4, setImg("Patchy rain nearby"));
-            views.setImageViewResource(R.id.imageView5, setImg("Patchy rain nearby"));
-            views.setImageViewResource(R.id.imageView6, setImg("Patchy rain nearby"));
-            views.setImageViewResource(R.id.imageView7, setImg("Patchy rain nearby"));
-            views.setImageViewResource(R.id.imageView8, setImg("Partly Cloudy"));
-            views.setImageViewResource(R.id.imageView9, setImg("Sunny"));
+            views.setImageViewResource(R.id.imageView4, setImg(tCondition1));
+            views.setImageViewResource(R.id.imageView5, setImg(tCondition2));
+            views.setImageViewResource(R.id.imageView6, setImg(tCondition3));
+            views.setImageViewResource(R.id.imageView7, setImg(tCondition4));
+            views.setImageViewResource(R.id.imageView8, setImg(tCondition5));
+            views.setImageViewResource(R.id.imageView9, setImg(tCondition6));
 //Thay doi textview thoi gian//
             views.setTextViewText(R.id.time_update,
                     context.getResources().getString(
@@ -86,22 +86,22 @@ public class WeatherWidget2 extends AppWidgetProvider {
                             R.string.text_temperature, tTempC) + "°C");
             views.setTextViewText(R.id.temperature4,
                     context.getResources().getString(
-                            R.string.text_temperature1, "30") + "°");
+                            R.string.text_temperature1, tTempC1) + "°");
             views.setTextViewText(R.id.temperature5,
                     context.getResources().getString(
-                            R.string.text_temperature2, "31") + "°");
+                            R.string.text_temperature2, tTempC2) + "°");
             views.setTextViewText(R.id.temperature6,
                     context.getResources().getString(
-                            R.string.text_temperature3, "31") + "°");
+                            R.string.text_temperature3, tTempC3) + "°");
             views.setTextViewText(R.id.temperature7,
                     context.getResources().getString(
-                            R.string.text_temperature4, "32") + "°");
+                            R.string.text_temperature4, tTempC4) + "°");
             views.setTextViewText(R.id.temperature8,
                     context.getResources().getString(
-                            R.string.text_temperature5, "31") + "°");
+                            R.string.text_temperature5, tTempC5) + "°");
             views.setTextViewText(R.id.temperature9,
                     context.getResources().getString(
-                            R.string.text_temperature6, "33") + "°");
+                            R.string.text_temperature6, tTempC6) + "°");
             Intent intentUpdate = new Intent(context, WeatherWidget2.class);
             intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
             int[] idArray = new int[]{appWidgetId};
@@ -141,10 +141,18 @@ public class WeatherWidget2 extends AppWidgetProvider {
                 if(currency1 != null) {
                     tTempC = String.valueOf(Math.round(currency1.getCurrent().getTemp_c()));
                     size = currency1.getForecast().getForecastDay().size();
-                    //tTempC1 = String.valueOf(currency1.getForecast().getForecastday().size());
-//                    tCondition1 = String.valueOf(currency1.getForecast().getForecastday().get(1).getDay().getConditionDay().getText());
-                    tTempC2 = String.valueOf(Math.round(currency1.getCurrent().getTemp_c()));
-                    Toast.makeText(context, size, Toast.LENGTH_SHORT).show();
+                    tTempC1 = String.valueOf(Math.round(currency1.getForecast().getForecastDay().get(1).getDay().getAvgtemp_c()));
+                    tCondition1 = String.valueOf(currency1.getForecast().getForecastDay().get(1).getDay().getConditionDay().getText());
+                    tTempC2 = String.valueOf(Math.round(currency1.getForecast().getForecastDay().get(2).getDay().getAvgtemp_c()));
+                    tCondition2 = String.valueOf(currency1.getForecast().getForecastDay().get(2).getDay().getConditionDay().getText());
+                    tTempC3 = String.valueOf(Math.round(currency1.getForecast().getForecastDay().get(3).getDay().getAvgtemp_c()));
+                    tCondition3 = String.valueOf(currency1.getForecast().getForecastDay().get(3).getDay().getConditionDay().getText());
+                    tTempC4 = String.valueOf(Math.round(currency1.getForecast().getForecastDay().get(4).getDay().getAvgtemp_c()));
+                    tCondition4 = String.valueOf(currency1.getForecast().getForecastDay().get(4).getDay().getConditionDay().getText());
+                    tTempC5 = String.valueOf(Math.round(currency1.getForecast().getForecastDay().get(5).getDay().getAvgtemp_c()));
+                    tCondition5 = String.valueOf(currency1.getForecast().getForecastDay().get(5).getDay().getConditionDay().getText());
+                    tTempC6 = String.valueOf(Math.round(currency1.getForecast().getForecastDay().get(6).getDay().getAvgtemp_c()));
+                    tCondition6 = String.valueOf(currency1.getForecast().getForecastDay().get(6).getDay().getConditionDay().getText());
                     //Glide.with(context).load("https:" + currency.getCurrent().getCondition().getIcon()).into(imgFromApi);
                 }
             }

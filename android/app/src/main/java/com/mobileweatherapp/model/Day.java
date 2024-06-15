@@ -1,22 +1,22 @@
 package com.mobileweatherapp.model;
 
 public class Day {
-    private float maxtemp_c;
+    private float avgtemp_c;
     private float mintemp_c;
     private ConditionDay condition;
 
-    public Day(float maxtemp_c, float mintemp_c, ConditionDay condition) {
-        this.maxtemp_c = maxtemp_c;
+    public Day(float avgtemp_c, float mintemp_c, ConditionDay condition) {
+        this.avgtemp_c = avgtemp_c;
         this.mintemp_c = mintemp_c;
         this.condition = condition;
     }
 
-    public float getMaxtemp_c() {
-        return maxtemp_c;
+    public float getAvgtemp_c() {
+        return avgtemp_c;
     }
 
-    public void setMaxtemp_c(float maxtemp_c) {
-        this.maxtemp_c = maxtemp_c;
+    public void setAvgtemp_c(float avgtemp_c) {
+        this.avgtemp_c = avgtemp_c;
     }
 
     public float getMintemp_c() {

@@ -1,10 +1,10 @@
 package com.mobileweatherapp.model;
 
-public class ForecastDay {
+public class DuBaoCacNgay {
     private String date;
     private Day day;
 
-    public ForecastDay(String date, Day day) {
+    public DuBaoCacNgay(String date, Day day) {
         this.date = date;
         this.day = day;
     }
