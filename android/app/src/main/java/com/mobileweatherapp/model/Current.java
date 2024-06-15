@@ -6,6 +6,13 @@ public class Current {
     private float humidity;
     private Condition condition;
 
+    public Current(float temp_c, int is_day, float humidity, Condition condition) {
+        this.temp_c = temp_c;
+        this.is_day = is_day;
+        this.humidity = humidity;
+        this.condition = condition;
+    }
+
     public float getTemp_c() {
         return temp_c;
     }

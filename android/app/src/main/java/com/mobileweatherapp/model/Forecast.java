@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Forecast {
-    private ArrayList<ForecastDay> forecastday;
+    private List<ForecastDay> forecastday;
 
-    public Forecast(ArrayList<ForecastDay> forecastday) {
+    public Forecast(List<ForecastDay> forecastday) {
         this.forecastday = forecastday;
     }
 
-    public ArrayList<ForecastDay> getForecastday() {
+    public List<ForecastDay> getForecastday() {
         return forecastday;
     }
 
-    public void setForecastday(ArrayList<ForecastDay> forecastday) {
+    public void setForecastday(List<ForecastDay> forecastday) {
         this.forecastday = forecastday;
     }
 }
