@@ -65,7 +65,7 @@ public class WeatherWidget extends AppWidgetProvider {
                             R.string.time, timeString));
             //Toast.makeText(context, timeString, Toast.LENGTH_SHORT).show();
 //Thay doi textview trang thai, nhiet do//
-            views.setTextViewText(R.id.condition, context.getResources().getString(R.string.text_condition, tvCondition));
+            //views.setTextViewText(R.id.condition, context.getResources().getString(R.string.text_condition, tvCondition));
             views.setTextViewText(R.id.temperature,
                     context.getResources().getString(
                             R.string.text_temperature, tvTempC) + "°C");

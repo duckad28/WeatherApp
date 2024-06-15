@@ -10,11 +10,11 @@ public class Forecast {
         this.forecastday = forecastday;
     }
 
-    public List<ForecastDay> getForecastday() {
+    public List<ForecastDay> getForecastDay() {
         return forecastday;
     }
 
-    public void setForecastday(List<ForecastDay> forecastday) {
+    public void setForecastDay(List<ForecastDay> forecastday) {
         this.forecastday = forecastday;
     }
 }

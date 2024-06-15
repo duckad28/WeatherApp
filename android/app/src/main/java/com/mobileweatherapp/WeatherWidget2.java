@@ -81,27 +81,27 @@ public class WeatherWidget2 extends AppWidgetProvider {
                             R.string.time, timeString));
             //Toast.makeText(context, timeString, Toast.LENGTH_SHORT).show();
 //Thay doi textview trang thai, nhiet do//
-            views.setTextViewText(R.id.temperature,"Current: " +
+            views.setTextViewText(R.id.temperature,
                     context.getResources().getString(
                             R.string.text_temperature, tTempC) + "°C");
             views.setTextViewText(R.id.temperature4,
                     context.getResources().getString(
-                            R.string.text_temperature1, "36") + "°");
+                            R.string.text_temperature1, "30") + "°");
             views.setTextViewText(R.id.temperature5,
                     context.getResources().getString(
-                            R.string.text_temperature2, "35") + "°");
+                            R.string.text_temperature2, "31") + "°");
             views.setTextViewText(R.id.temperature6,
                     context.getResources().getString(
-                            R.string.text_temperature3, "34") + "°");
+                            R.string.text_temperature3, "31") + "°");
             views.setTextViewText(R.id.temperature7,
                     context.getResources().getString(
-                            R.string.text_temperature4, "37") + "°");
+                            R.string.text_temperature4, "32") + "°");
             views.setTextViewText(R.id.temperature8,
                     context.getResources().getString(
-                            R.string.text_temperature5, "38") + "°");
+                            R.string.text_temperature5, "31") + "°");
             views.setTextViewText(R.id.temperature9,
                     context.getResources().getString(
-                            R.string.text_temperature6, "39") + "°");
+                            R.string.text_temperature6, "33") + "°");
             Intent intentUpdate = new Intent(context, WeatherWidget2.class);
             intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
             int[] idArray = new int[]{appWidgetId};
@@ -128,7 +128,7 @@ public class WeatherWidget2 extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             callApi(context);
             updateAppWidget(context, appWidgetManager, appWidgetId);
-            //Toast.makeText(context, "Widget2 has been updated! ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Widget2 has been updated! ", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -140,15 +140,11 @@ public class WeatherWidget2 extends AppWidgetProvider {
                 Currency currency1 = response.body();
                 if(currency1 != null) {
                     tTempC = String.valueOf(Math.round(currency1.getCurrent().getTemp_c()));
-                    //size = currency1.getForecast().getForecastday().size();
+                    size = currency1.getForecast().getForecastDay().size();
                     //tTempC1 = String.valueOf(currency1.getForecast().getForecastday().size());
 //                    tCondition1 = String.valueOf(currency1.getForecast().getForecastday().get(1).getDay().getConditionDay().getText());
                     tTempC2 = String.valueOf(Math.round(currency1.getCurrent().getTemp_c()));
-//                    tTempC3 = String.valueOf(currency1.getForecast().getForecastday().get(3).getDay().getMaxtemp_c());
-//                    tTempC4 = String.valueOf(currency1.getForecast().getForecastday().get(4).getDay().getMaxtemp_c());
-//                    tTempC5 = String.valueOf(currency1.getForecast().getForecastday().get(5).getDay().getMaxtemp_c());
-//                    tTempC6 = String.valueOf(currency1.getForecast().getForecastday().get(6).getDay().getMaxtemp_c());
-                    //Toast.makeText(context, tTempC, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, size, Toast.LENGTH_SHORT).show();
                     //Glide.with(context).load("https:" + currency.getCurrent().getCondition().getIcon()).into(imgFromApi);
                 }
             }
