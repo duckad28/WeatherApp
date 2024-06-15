@@ -4,5 +4,6 @@
     <string name="text_condition">%s</string>
     <string name="text_temperature">%s</string>
     <string name="text_humidity">%s</string>
+    <string name="text_aqi">%s</string>
     <string name="time">%1$s</string>
 </resources>
