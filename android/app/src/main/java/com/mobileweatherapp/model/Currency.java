@@ -8,6 +8,12 @@ public class Currency {
     private Current current;
     private Forecast forecast;
 
+    public Currency(Location location, Current current, Forecast forecast) {
+        this.location = location;
+        this.current = current;
+        this.forecast = forecast;
+    }
+
     public Forecast getForecast() {
         return forecast;
     }

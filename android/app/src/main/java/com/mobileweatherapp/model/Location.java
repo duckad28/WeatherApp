@@ -4,6 +4,11 @@ public class Location {
     private String name;
     private String region;
 
+    public Location(String name, String region) {
+        this.name = name;
+        this.region = region;
+    }
+
     public String getName() {
         return name;
     }
