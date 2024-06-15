@@ -1,9 +1,20 @@
 package com.mobileweatherapp.model;
 
 
+import com.mobileweatherapp.model.Forecast;
+
 public class Currency {
     private Location location;
     private Current current;
+    private Forecast forecast;
+
+    public Forecast getForecast() {
+        return forecast;
+    }
+
+    public void setForecast(Forecast forecast) {
+        this.forecast = forecast;
+    }
 
     public Location getLocation() {
         return location;
