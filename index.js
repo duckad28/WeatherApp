@@ -9,19 +9,27 @@ import PushNotification from "react-native-push-notification";
 import notifee, { EventType, AndroidStyle, TimestampTrigger, TriggerType, AndroidImportance } from '@notifee/react-native';
 
 PushNotification.configure({
-  onNotification: function (notification) {
-    console.log("NOTIFICATION:", notification);
+  onAction: function (notification) {
+      if (notification.action === 'More') {
+          console.log('Alarm Snoozed');
+      }
+      else if (notification.action === 'Cancel') {
+          PushNotification.cancelLocalNotification(notification.id);
+      }
+      else {
+          console.log('Notification opened');
+      }
   },
-  requestPermissions: Platform.OS === 'ios'
+  actions: ["More", "Cancel"],
 });
 
 
 notifee.onBackgroundEvent(async ({type, detail}) => {
   console.log('type', type, detail);
-  if (type == EventType.ACTION_PRESS && detail.pressAction?.id == 'cancel') {
+  if (type == EventType.ACTION_PRESS && detail.pressAction?.id == 'Cancel') {
     await notifee.cancelNotification(detail.notification.id)
   }
-  if (type == EventType.ACTION_PRESS && detail.pressAction?.id == 'more') {
+  if (type == EventType.ACTION_PRESS && detail.pressAction?.id == 'More') {
     console.log('hleleo')
   }
 })

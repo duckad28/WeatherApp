@@ -36,11 +36,12 @@ export const checkBadWeather = (weather) => {
 export const createNoti = async () => {
   let noti = await getLocationData('noti');
   if (noti) {
-    notifee.cancelAllNotifications();
+    PushNotification.cancelAllLocalNotifications();
     let weatherArr = noti?.forecastData;
     if (weatherArr) {
       let n = weatherArr.length;
       let i = 0;
+      let id = 1;
       let now = new Date();
       while (i < n) {
         let notiTemp = weatherArr[i];
@@ -53,13 +54,19 @@ export const createNoti = async () => {
               title: 'Cảnh báo điều kiện thời tiết xấu',
               body: warning,
               current_icon: getWeatherIcon(notiTemp?.day?.condition?.icon),
+              id: id++,
             }
             if (notif) {
-              onCreateTriggerNotification(notiTemp?.date, 6, 0, notif);
-              onCreateTriggerNotification(notiTemp?.date, 9, 0, notif);
-              onCreateTriggerNotification(notiTemp?.date, 12, 0, notif);
-              onCreateTriggerNotification(notiTemp?.date, 15, 0, notif);
-              onCreateTriggerNotification(notiTemp?.date, 18, 0, notif);
+              // onCreateTriggerNotification(notiTemp?.date, 6, 0, notif);
+              // onCreateTriggerNotification(notiTemp?.date, 9, 0, notif);
+              // onCreateTriggerNotification(notiTemp?.date, 12, 0, notif);
+              // onCreateTriggerNotification(notiTemp?.date, 15, 0, notif);
+              // onCreateTriggerNotification(notiTemp?.date, 18, 0, notif);
+              handleNotification(notiTemp?.date, 6, 0, notif);
+              handleNotification(notiTemp?.date, 9, 0, notif);
+              handleNotification(notiTemp?.date, 12, 0, notif);
+              handleNotification(notiTemp?.date, 15, 0, notif);
+              handleNotification(notiTemp?.date, 18, 0, notif);
             }
 
           }
@@ -69,10 +76,12 @@ export const createNoti = async () => {
           let notif1 = {
             title: notiTemp?.location,
             body: content,
-            current_icon: getWeatherIcon(notiTemp?.day?.condition?.icon)
+            current_icon: getWeatherIcon(notiTemp?.day?.condition?.icon),
+            id: id++,
           }
           if (notif1) {
-            onCreateTriggerNotification(notiTemp?.date, 6, 0, notif1);
+            // onCreateTriggerNotification(notiTemp?.date, 6, 0, notif1);
+            handleNotification(notiTemp?.date, 6, 0, notif1);
           }
 
         }
@@ -87,10 +96,12 @@ export const createNoti = async () => {
             let notif2 = {
               title: notiTemp2?.location,
               body: content2,
-              current_icon: getWeatherIcon(notiTemp2?.day?.condition?.icon)
+              current_icon: getWeatherIcon(notiTemp2?.day?.condition?.icon),
+              id: id++
             }
             if (notif2) {
-              onCreateTriggerNotification(notiTemp?.date, 20, 0);
+              // onCreateTriggerNotification(notiTemp?.date, 20, 0);
+              handleNotification(notiTemp?.date, 9, 0, notif2);
             }
           }
         }
@@ -191,37 +202,24 @@ export async function onDisplayNotification() {
   }
 }
 
-const handleNotification = async () => {
-  let noti = await getLocationData('noti');
-  if (noti) {
-    console.log(noti?.location)
-    let notif = {
-      title: noti?.location,
-      message: 'Dự báo thời tiết trong ngày:' + "\n"
-        + viText[noti?.forecastData[0]?.day?.condition?.text.trim().toLowerCase()] + "\n"
-        + 'Nhiệt độ cao nhất: ' + noti?.forecastData[0]?.day?.maxtemp_c + "°" + "\n"
-        + 'Nhiệt độ thấp nhất: ' + noti?.forecastData[0]?.day?.mintemp_c + "°" + "\n"
-        + 'Khả năng có mưa: ' + noti?.forecastData[0]?.day?.daily_chance_of_rain + "%" + "\n",
-    }
-    PushNotification.cancelAllLocalNotifications();
+const handleNotification = async (newDate, h, m, notif) => {
 
-    PushNotification.localNotification({
-      channelId: "test-channel",
-      title: notif.title,
-      message: notif.message,
-      color: "red",
-      soundName: 'sound.mp3',
-      playSound: true,
-      id: 1
-    });
-
+  let now = new Date();
+  let date = new Date(newDate);
+  date.setHours(h);
+  date.setMinutes(m);
+  if (now < date) {
     PushNotification.localNotificationSchedule({
       channelId: "test-channel",
-      title: "Alarm",
-      message: "You clicked on " + " 20 seconds ago",
-      date: new Date(Date.now() + 20 * 1000),
+      title: notif?.title,
+      message: notif?.body,
+      date: new Date(Date.now()) + h*1000,
       allowWhileIdle: true,
-      repeatTime: 4,
+      actions: ["More"],
+      largeIconUrl: images[notif?.current_icon],
+      importance:AndroidImportance.HIGH,
     });
   }
+
+    
 }
