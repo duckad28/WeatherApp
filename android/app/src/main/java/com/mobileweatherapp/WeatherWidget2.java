@@ -128,12 +128,13 @@ public class WeatherWidget2 extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             callApi(context);
             updateAppWidget(context, appWidgetManager, appWidgetId);
+            Toast.makeText(context, "Widget2 has been updated! ", Toast.LENGTH_SHORT).show();
         }
     }
 
-    //https://api.weatherapi.com/v1/forecast.json?key=&q=Ha%20noi&days=7
+    //https://api.weatherapi.com/v1/forecast.json?key=7c087e009aa9405791065629241206&q=Ha%20noi&days=7
     static void callApi(Context context) {
-        ApiService.apiService.getDataAPI("", "Ha noi", 7).enqueue(new Callback<Currency>() {
+        ApiService.apiService.getDataAPI("7c087e009aa9405791065629241206", "Ha noi", 7).enqueue(new Callback<Currency>() {
             @Override
             public void onResponse(Call<Currency> call, Response<Currency> response) {
                 Currency currency1 = response.body();

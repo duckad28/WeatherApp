@@ -70,8 +70,8 @@ const MainScreen = (props) => {
     
     // Các thông tin chung
     let [index, setIndex] = useState(0);
-    let [isE, setIsE] = useState(true);
-    let [isC, setIsC] = useState(true);
+    let [isE, setIsE] = useState(false);
+    let [isC, setIsC] = useState(false);
 
     // Vị trí hiện tại
     let [currentLocation, setCurrentLocation] = useState(null);
