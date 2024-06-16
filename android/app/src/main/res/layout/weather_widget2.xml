@@ -18,9 +18,9 @@
 
         <TextView
             android:id="@+id/place"
-            android:layout_width="240dp"
+            android:layout_width="245dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
+            android:layout_marginLeft="0dp"
             android:layout_marginRight="0dp"
             android:text="@string/text_place"
             android:textColor="#F8F5F5"

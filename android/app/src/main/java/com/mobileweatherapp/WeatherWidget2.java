@@ -74,7 +74,7 @@ public class WeatherWidget2 extends AppWidgetProvider {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.weather_widget2);
             tPlace = appData.getString("text");
 //Thay doi textview dia diem
-            views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_condition, appData.getString("text")));
+            views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_place, appData.getString("text")));
 //Thay doi image
             views.setImageViewResource(R.id.imageView4, setImg(tCondition1));
             views.setImageViewResource(R.id.imageView5, setImg(tCondition2));
@@ -162,7 +162,7 @@ public class WeatherWidget2 extends AppWidgetProvider {
             callApi(context);
             if(callApiSuccess) {
                 updateAppWidget(context, appWidgetManager, appWidgetId);
-                //Toast.makeText(context, "Widget2 has been updated! ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Widget2 has been updated! ", Toast.LENGTH_SHORT).show();
             }
         }
     }

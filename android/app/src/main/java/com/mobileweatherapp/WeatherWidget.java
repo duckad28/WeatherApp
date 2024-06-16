@@ -115,7 +115,7 @@ public class WeatherWidget extends AppWidgetProvider {
             callApi(context);
             if(callApiSuccess) {
                 updateAppWidget(context, appWidgetManager, appWidgetId);
-                //Toast.makeText(context, "Widget1 has been updated! ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Widget1 has been updated! ", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -139,7 +139,7 @@ public class WeatherWidget extends AppWidgetProvider {
                     callApiSuccess = true;
                     //Glide.with(context).load("https:" + currency.getCurrent().getCondition().getIcon()).into(imgFromApi);
                 }
-                //Toast.makeText(context, tPlace, Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, tPlace, Toast.LENGTH_SHORT).show();
                 //Toast.makeText(context, tvTempC, Toast.LENGTH_SHORT).show();
             }
 
