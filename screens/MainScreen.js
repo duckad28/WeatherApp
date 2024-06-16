@@ -294,6 +294,7 @@ const MainScreen = (props) => {
                     let t = weatherDatas.filter(item => item.curloc);
                     let text = t[0]?.location;
                     storeLocationData('noti', t[0]);
+                    console.log(text);
                     handleSendWg(text);
                 }
                 else {
@@ -376,7 +377,7 @@ const MainScreen = (props) => {
                         }
 
 
-
+                        let isCurloc = weatherDataItem?.item?.curloc;
                         let current_temperature = current_weather?.temp_c;
                         let max_temperature = Math.round(weatherDataItem?.item?.forecastData[i_day]?.day?.maxtemp_c);
                         let min_temperature = Math.round(weatherDataItem?.item?.forecastData[i_day]?.day?.mintemp_c);
@@ -541,9 +542,9 @@ const MainScreen = (props) => {
                                                 justifyContent: 'center',
                                                 marginTop: 10
                                             }}>
-                                                <FontAwesomeIcon icon={faLocationArrow} size={fontSizes.iconSizeM} color={colors.textColor}></FontAwesomeIcon>
+                                                <FontAwesomeIcon icon={faLocationArrow} size={fontSizes.iconSizeM} color={isCurloc ? colors.textColor : colors.buttonColor}></FontAwesomeIcon>
                                                 <View style={{ width: 10 }}></View>
-                                                <FontAwesomeIcon icon={faCircle} size={fontSizes.iconSizeSSS} color={colors.textColor}></FontAwesomeIcon>
+                                                <FontAwesomeIcon icon={faCircle} size={fontSizes.iconSizeSSS} color={!isCurloc ? colors.textColor : colors.buttonColor}></FontAwesomeIcon>
                                             </View>
                                         </View>
                                     </View>

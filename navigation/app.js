@@ -9,7 +9,6 @@ import {
     LocationPermissionScreen,
     AqiScreen,
 } from '../screens';
-import messaging from '@react-native-firebase/messaging';
 import { PERMISSIONS, request } from 'react-native-permissions';
 import { PermissionsAndroid } from 'react-native';
 import { Linking, ActivityIndicator } from 'react-native';
@@ -17,10 +16,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getData, storeData } from '../utilities/asyncStorage';
 import { getLocationData, storeLocationData } from '../utilities/locationStorage';
 import notifee, { EventType, AndroidStyle, TimestampTrigger, TriggerType, AndroidImportance } from '@notifee/react-native';
-import usePushNotification from '../utilities/firebasenoti';
 import PushNotification from "react-native-push-notification";
 import BackgroundService from 'react-native-background-actions';
-import { onCreateTriggerNotification } from '../utilities/pushNoti';
+import { createNoti, onCreateTriggerNotification } from '../utilities/pushNoti';
 
 const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), time));
 
@@ -72,25 +70,13 @@ const App = () => {
     const getNoti = async () => {
         let notiEn = await getData('NotificationEnabled');
         if (notiEn == 'true') {
-            let noti = await getLocationData('noti');
-            if (noti) {
-                let noti1 = {
-                    title: 'Dự báo thời tiết ngày hôm nay',
-                    body: 1,
-                }
-                let noti2 = {
-                    title: 'Dự báo thời tiết ngày mai',
-                    body: 2,
-                }
-                onCreateTriggerNotification(6, 0, noti1);
-                onCreateTriggerNotification(20, 0, noti2);
-            }
+            createNoti();
         }
     }
     useEffect(() => {
         // BackgroundService.start(veryIntensiveTask, options);
         createChannels();
-        // getNoti();
+        getNoti();
     }, [])
     return <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>

@@ -26,9 +26,7 @@ import org.w3c.dom.Text;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Objects;
 
 import retrofit2.Call;
@@ -54,8 +52,6 @@ public class WeatherWidget2 extends AppWidgetProvider {
     private static String tCondition4;
     private static String tCondition5;
     private static String tCondition6;
-    private static Boolean callApiSuccess = false;
-    private static String tPlace = "Thai Binh";
 
 
     @SuppressLint("StringFormatInvalid")
@@ -66,14 +62,10 @@ public class WeatherWidget2 extends AppWidgetProvider {
         try {
             String timeString =
                     DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date());
-            GregorianCalendar d = new GregorianCalendar();
-            int dayOfWeek = d.get(Calendar.DAY_OF_WEEK);
-            String[] dow = { "Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri" };
             SharedPreferences sharedPref = context.getSharedPreferences("DATA", Context.MODE_PRIVATE);
             String appString = sharedPref.getString("appData", "{\"text\":'no data'}");
             JSONObject appData = new JSONObject(appString);
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.weather_widget2);
-            tPlace = appData.getString("text");
 //Thay doi textview dia diem
             views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_condition, appData.getString("text")));
 //Thay doi image
@@ -110,32 +102,6 @@ public class WeatherWidget2 extends AppWidgetProvider {
             views.setTextViewText(R.id.temperature9,
                     context.getResources().getString(
                             R.string.text_temperature6, tTempC6) + "°");
-//Thay doi ngay trong tuan
-            int day4 = (dayOfWeek + 1) % 7;
-            views.setTextViewText(R.id.day4,
-                    context.getResources().getString(
-                            R.string.text_day4, dow[day4]));
-            int day5 = (dayOfWeek + 2) % 7;
-            views.setTextViewText(R.id.day5,
-                    context.getResources().getString(
-                            R.string.text_day5, dow[day5]));
-            int day6 = (dayOfWeek + 3) % 7;
-            views.setTextViewText(R.id.day6,
-                    context.getResources().getString(
-                            R.string.text_day6, dow[day6]));
-            int day7 = (dayOfWeek + 4) % 7;
-            views.setTextViewText(R.id.day7,
-                    context.getResources().getString(
-                            R.string.text_day7, dow[day7]));
-            int day8 = (dayOfWeek + 5) % 7;
-            views.setTextViewText(R.id.day8,
-                    context.getResources().getString(
-                            R.string.text_day8, dow[day8]));
-            int day9 = (dayOfWeek + 6) % 7;
-            views.setTextViewText(R.id.day9,
-                    context.getResources().getString(
-                            R.string.text_day9, dow[day9]));
-
             Intent intentUpdate = new Intent(context, WeatherWidget2.class);
             intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
             int[] idArray = new int[]{appWidgetId};
@@ -161,19 +127,16 @@ public class WeatherWidget2 extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
             callApi(context);
-            if(callApiSuccess) {
-                updateAppWidget(context, appWidgetManager, appWidgetId);
-                //Toast.makeText(context, "Widget2 has been updated! ", Toast.LENGTH_SHORT).show();
-            }
+            updateAppWidget(context, appWidgetManager, appWidgetId);
+            Toast.makeText(context, "Widget2 has been updated! ", Toast.LENGTH_SHORT).show();
         }
     }
 
     //https://api.weatherapi.com/v1/forecast.json?key=7c087e009aa9405791065629241206&q=Ha%20noi&days=7
     static void callApi(Context context) {
-        ApiService.apiService.getDataAPI("7c087e009aa9405791065629241206", tPlace, 7).enqueue(new Callback<Currency>() {
+        ApiService.apiService.getDataAPI("7c087e009aa9405791065629241206", "Ha noi", 7).enqueue(new Callback<Currency>() {
             @Override
             public void onResponse(Call<Currency> call, Response<Currency> response) {
-                callApiSuccess = false;
                 Currency currency1 = response.body();
                 if(currency1 != null) {
                     tTempC = String.valueOf(Math.round(currency1.getCurrent().getTemp_c()));
@@ -190,7 +153,6 @@ public class WeatherWidget2 extends AppWidgetProvider {
                     tCondition5 = String.valueOf(currency1.getForecast().getForecastDay().get(5).getDay().getConditionDay().getText());
                     tTempC6 = String.valueOf(Math.round(currency1.getForecast().getForecastDay().get(6).getDay().getAvgtemp_c()));
                     tCondition6 = String.valueOf(currency1.getForecast().getForecastDay().get(6).getDay().getConditionDay().getText());
-                    callApiSuccess = true;
                     //Glide.with(context).load("https:" + currency.getCurrent().getCondition().getIcon()).into(imgFromApi);
                 }
             }

@@ -10,6 +10,7 @@ export default {
     image9: require('../assets/images/gray_sky.jpg'),
     image10: require('../assets/images/overcast_sky.jpg'),
     image11: require('../assets/images/rain_sky.jpg'),
+    warnImg: require('../assets/images/warning.png'),
     day113: require('../assets/weatherImages/weather/64x64/day/113.png'),
     day116: require('../assets/weatherImages/weather/64x64/day/116.png'),
     day119: require('../assets/weatherImages/weather/64x64/day/119.png'),

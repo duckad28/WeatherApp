@@ -7,7 +7,6 @@ import {name as appName} from './app.json';
 import App from './navigation/app';
 import PushNotification from "react-native-push-notification";
 import notifee, { EventType, AndroidStyle, TimestampTrigger, TriggerType, AndroidImportance } from '@notifee/react-native';
-import messaging from '@react-native-firebase/messaging';
 
 PushNotification.configure({
   onNotification: function (notification) {
@@ -23,12 +22,9 @@ notifee.onBackgroundEvent(async ({type, detail}) => {
     await notifee.cancelNotification(detail.notification.id)
   }
   if (type == EventType.ACTION_PRESS && detail.pressAction?.id == 'more') {
-    alert("hals")
+    console.log('hleleo')
   }
 })
 
-messaging().setBackgroundMessageHandler(async remoteMessage => {
-  console.log('killed state')
-})
 AppRegistry.registerComponent(appName, () => () => <App></App>);
 

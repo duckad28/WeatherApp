@@ -88,9 +88,10 @@ const LocationScreen = (props) => {
     }
     const handleAddLocation = async (loc) => {
         if (loc) {
-            if (!weatherData.some(e => (e?.location === loc?.name && e?.country === loc?.country))) {
+            if (!weatherData.some(e => (e?.location == loc?.name && e?.country == loc?.country))) {
                 if (searchLocation?.location == loc?.name && loc?.country == searchLocation?.coutry) {
-                    setWeatherData([...weatherData, searchLocation]);
+                    let temp = [...weatherData, searchLocation];
+                    setWeatherData(temp);
                     setIsChange(++isChange);
                 } else {
                     fetchNewLocation(loc);
