@@ -54,7 +54,7 @@ public class WeatherWidget2 extends AppWidgetProvider {
     private static String tCondition5;
     private static String tCondition6;
     private static Boolean callApiSuccess = false;
-    private static String tPlace = "Thai Binh";
+    private static String tPlace;
 
 
     @SuppressLint("StringFormatInvalid")
@@ -159,6 +159,7 @@ public class WeatherWidget2 extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
+            readText(context);
             callApi(context);
             if(callApiSuccess) {
                 updateAppWidget(context, appWidgetManager, appWidgetId);
@@ -220,5 +221,15 @@ public class WeatherWidget2 extends AppWidgetProvider {
             idImg = R.drawable.overcast;
         }
         return idImg;
+    }
+    static void readText(Context context){
+        try {
+            SharedPreferences sharedPref = context.getSharedPreferences("DATA", Context.MODE_PRIVATE);
+            String appString = sharedPref.getString("appData", "{\"text\":'no data'}");
+            JSONObject appData = new JSONObject(appString);
+            tPlace = appData.getString("text");
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

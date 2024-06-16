@@ -43,7 +43,7 @@ public class WeatherWidget extends AppWidgetProvider {
     private static int isDay;
     private static String tvRealFeel;
     private static Boolean callApiSuccess = false;
-    private static String tPlace = "Thai Binh";
+    private static String tPlace;
 
 
     @SuppressLint("StringFormatInvalid")
@@ -58,7 +58,7 @@ public class WeatherWidget extends AppWidgetProvider {
             String appString = sharedPref.getString("appData", "{\"text\":'no data'}");
             JSONObject appData = new JSONObject(appString);
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.weather_widget);
-            tPlace = appData.getString("text");
+            //tPlace = appData.getString("text");
 //Thay doi textview dia diem
             views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_place, appData.getString("text")));
             int imgId = setImg(tvCondition);
@@ -112,6 +112,7 @@ public class WeatherWidget extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
+            readText(context);
             callApi(context);
             if(callApiSuccess) {
                 updateAppWidget(context, appWidgetManager, appWidgetId);
@@ -189,5 +190,15 @@ public class WeatherWidget extends AppWidgetProvider {
             }
         }
         return idImg;
+    }
+    static void readText(Context context){
+        try {
+            SharedPreferences sharedPref = context.getSharedPreferences("DATA", Context.MODE_PRIVATE);
+            String appString = sharedPref.getString("appData", "{\"text\":'no data'}");
+            JSONObject appData = new JSONObject(appString);
+            tPlace = appData.getString("text");
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
