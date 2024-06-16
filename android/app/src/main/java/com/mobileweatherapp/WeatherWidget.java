@@ -24,6 +24,7 @@ import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
 
@@ -40,7 +41,9 @@ public class WeatherWidget extends AppWidgetProvider {
     private static String tvHumidity;
     private static String tvCondition;
     private static int isDay;
-    private static ImageView imgFromApi;
+    private static String tvRealFeel;
+    private static Boolean callApiSuccess = false;
+    private static String tPlace = "Thai Binh";
 
 
     @SuppressLint("StringFormatInvalid")
@@ -55,8 +58,9 @@ public class WeatherWidget extends AppWidgetProvider {
             String appString = sharedPref.getString("appData", "{\"text\":'no data'}");
             JSONObject appData = new JSONObject(appString);
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.weather_widget);
+            tPlace = appData.getString("text");
 //Thay doi textview dia diem
-            views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_condition, appData.getString("text")));
+            views.setTextViewText(R.id.place, context.getResources().getString(R.string.text_place, appData.getString("text")));
             int imgId = setImg(tvCondition);
             views.setImageViewResource(R.id.imageView, imgId);
 //Thay doi textview thoi gian//
@@ -65,13 +69,25 @@ public class WeatherWidget extends AppWidgetProvider {
                             R.string.time, timeString));
             //Toast.makeText(context, timeString, Toast.LENGTH_SHORT).show();
 //Thay doi textview trang thai, nhiet do//
-            //views.setTextViewText(R.id.condition, context.getResources().getString(R.string.text_condition, tvCondition));
-            views.setTextViewText(R.id.temperature,
-                    context.getResources().getString(
-                            R.string.text_temperature, tvTempC) + "°C");
+            if(Objects.nonNull(tvRealFeel)) {
+                views.setTextViewText(R.id.realfeel, "RealFeel " + context.getResources().getString(R.string.text_realfeel, tvRealFeel) + "°");
+            } else {
+                views.setTextViewText(R.id.realfeel, context.getResources().getString(R.string.text_realfeel, ""));
+            }
+            if(Objects.nonNull(tvTempC)) {
+                views.setTextViewText(R.id.temperature,
+                        context.getResources().getString(
+                                R.string.text_temperature, tvTempC) + "°C");
+            }else {
+                views.setTextViewText(R.id.temperature, context.getResources().getString(R.string.text_temperature, ""));
+            }
 //Thay doi textview do am//
-            views.setTextViewText(R.id.humidity,"Humidity: "+
-                    context.getResources().getString(R.string.text_humidity, tvHumidity)+"%");
+            if(Objects.nonNull(tvTempC)) {
+                views.setTextViewText(R.id.humidity, "Humidity: " +
+                        context.getResources().getString(R.string.text_humidity, tvHumidity) + "%");
+            } else {
+                views.setTextViewText(R.id.humidity, context.getResources().getString(R.string.text_humidity, ""));
+            }
             Intent intentUpdate = new Intent(context, WeatherWidget.class);
             intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
             int[] idArray = new int[]{appWidgetId};
@@ -97,16 +113,20 @@ public class WeatherWidget extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
             callApi(context);
-            updateAppWidget(context, appWidgetManager, appWidgetId);
-            //Toast.makeText(context, "Widget1 has been updated! ", Toast.LENGTH_SHORT).show();
+            if(callApiSuccess) {
+                updateAppWidget(context, appWidgetManager, appWidgetId);
+                //Toast.makeText(context, "Widget1 has been updated! ", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
     //https://api.weatherapi.com/v1/current.json?key=9a9dcb14233e4d9aad5142530242004&q=%22Ha%20Noi%22
     static void callApi(Context context) {
-        ApiService.apiService.getDataAPI("9a9dcb14233e4d9aad5142530242004", "Ha Noi", 7).enqueue(new Callback<Currency>() {
+        ApiService.apiService.getDataAPI("9a9dcb14233e4d9aad5142530242004", tPlace, 7).enqueue(new Callback<Currency>() {
+
             @Override
             public void onResponse(Call<Currency> call, Response<Currency> response) {
+                callApiSuccess = false;
                 //Toast.makeText(context, "Call API success! ", Toast.LENGTH_SHORT).show();
 
                 Currency currency = response.body();
@@ -115,8 +135,11 @@ public class WeatherWidget extends AppWidgetProvider {
                     tvTempC =  String.valueOf(Math.round(currency.getCurrent().getTemp_c()));
                     tvHumidity = String.valueOf(Math.round(currency.getCurrent().getHumidity()));
                     tvCondition = String.valueOf(currency.getCurrent().getCondition().getText());
+                    tvRealFeel = String.valueOf(Math.round(currency.getCurrent().getFeelslike_c()));
+                    callApiSuccess = true;
                     //Glide.with(context).load("https:" + currency.getCurrent().getCondition().getIcon()).into(imgFromApi);
                 }
+                //Toast.makeText(context, tPlace, Toast.LENGTH_SHORT).show();
                 //Toast.makeText(context, tvTempC, Toast.LENGTH_SHORT).show();
             }
 

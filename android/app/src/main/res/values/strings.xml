@@ -1,11 +1,12 @@
 <resources>
     <string name="app_name">MobileWeatherApp</string>
-    <string name="text_place">Ha Noi</string>
+    <string name="text_place">%s</string>
     <string name="text_condition">%s</string>
     <string name="text_temperature">%s</string>
     <string name="text_humidity">%s</string>
     <string name="text_aqi">%s</string>
     <string name="time">%1$s</string>
+    <string name="text_realfeel">%s</string>
 
     <string name="text_temperature1">%s</string>
     <string name="text_temperature2">%s</string>
@@ -13,4 +14,11 @@
     <string name="text_temperature4">%s</string>
     <string name="text_temperature5">%s</string>
     <string name="text_temperature6">%s</string>
+
+    <string name="text_day4">%s</string>
+    <string name="text_day5">%s</string>
+    <string name="text_day6">%s</string>
+    <string name="text_day7">%s</string>
+    <string name="text_day8">%s</string>
+    <string name="text_day9">%s</string>
 </resources>

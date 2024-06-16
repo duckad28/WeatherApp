@@ -5,12 +5,14 @@ public class Current {
     private int is_day;
     private float humidity;
     private Condition condition;
+    private float feelslike_c;
 
-    public Current(float temp_c, int is_day, float humidity, Condition condition) {
+    public Current(float temp_c, int is_day, float humidity, Condition condition, float feelslike_c) {
         this.temp_c = temp_c;
         this.is_day = is_day;
         this.humidity = humidity;
         this.condition = condition;
+        this.feelslike_c = feelslike_c;
     }
 
     public float getTemp_c() {
@@ -43,5 +45,13 @@ public class Current {
 
     public void setIs_day(int is_day) {
         this.is_day = is_day;
+    }
+
+    public float getFeelslike_c() {
+        return feelslike_c;
+    }
+
+    public void setFeelslike_c(float feelslike_c) {
+        this.feelslike_c = feelslike_c;
     }
 }
