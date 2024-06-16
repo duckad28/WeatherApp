@@ -57,11 +57,6 @@ export const createNoti = async () => {
               id: id++,
             }
             if (notif) {
-              // onCreateTriggerNotification(notiTemp?.date, 6, 0, notif);
-              // onCreateTriggerNotification(notiTemp?.date, 9, 0, notif);
-              // onCreateTriggerNotification(notiTemp?.date, 12, 0, notif);
-              // onCreateTriggerNotification(notiTemp?.date, 15, 0, notif);
-              // onCreateTriggerNotification(notiTemp?.date, 18, 0, notif);
               handleNotification(notiTemp?.date, 6, 0, notif);
               handleNotification(notiTemp?.date, 9, 0, notif);
               handleNotification(notiTemp?.date, 12, 0, notif);
@@ -80,7 +75,6 @@ export const createNoti = async () => {
             id: id++,
           }
           if (notif1) {
-            // onCreateTriggerNotification(notiTemp?.date, 6, 0, notif1);
             handleNotification(notiTemp?.date, 6, 0, notif1);
           }
 
@@ -100,8 +94,7 @@ export const createNoti = async () => {
               id: id++
             }
             if (notif2) {
-              // onCreateTriggerNotification(notiTemp?.date, 20, 0);
-              handleNotification(notiTemp?.date, 9, 0, notif2);
+              handleNotification(notiTemp?.date, 20, 10, notif2);
             }
           }
         }
@@ -209,14 +202,14 @@ const handleNotification = async (newDate, h, m, notif) => {
   date.setHours(h);
   date.setMinutes(m);
   if (now < date) {
+    let current_icon = images[notif?.current_icon];
     PushNotification.localNotificationSchedule({
       channelId: "test-channel",
       title: notif?.title,
       message: notif?.body,
-      date: new Date(Date.now()) + h*1000,
+      date: date,
       allowWhileIdle: true,
-      actions: ["More"],
-      largeIconUrl: images[notif?.current_icon],
+      largeIconUrl: current_icon,
       importance:AndroidImportance.HIGH,
     });
   }

@@ -69,7 +69,7 @@ const MainScreen = (props) => {
     let [preWeather, setPreWeather] = useState([]);
     
     // Các thông tin chung
-    let [index, setIndex] = useState(0);
+    let [index, setIndex] = useState(null);
     let [isE, setIsE] = useState(false);
     let [isC, setIsC] = useState(false);
 
@@ -258,6 +258,7 @@ const MainScreen = (props) => {
 
     useEffect(() => {
         LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+        setIndex(0);
         getGeneral();
         getPreWeather();
         startApp();
@@ -265,12 +266,12 @@ const MainScreen = (props) => {
     }, [])
 
     useEffect(() => {
-        if (ref.current && route?.params?.toIndex != undefined && route?.params?.toIndex < weatherDatas.length) {
-            ref.current?.scrollToIndex({
-                index: route?.params?.toIndex,
-                animated: false
-            })
-        }
+            if (ref.current && route?.params?.toIndex >= 0 && route?.params?.toIndex < weatherDatas.length) {
+                ref.current?.scrollToIndex({
+                    index: route?.params?.toIndex,
+                    animated: false
+                })
+            }
     }, [route?.params?.toIndex])
 
     // General

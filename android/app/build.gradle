@@ -120,7 +120,6 @@ android {
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
-    implementation project(':react-native-alarm-notification')
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:flipper-integration")
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))

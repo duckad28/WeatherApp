@@ -30,7 +30,6 @@ notifee.onBackgroundEvent(async ({type, detail}) => {
     await notifee.cancelNotification(detail.notification.id)
   }
   if (type == EventType.ACTION_PRESS && detail.pressAction?.id == 'More') {
-    console.log('hleleo')
   }
 })
 
